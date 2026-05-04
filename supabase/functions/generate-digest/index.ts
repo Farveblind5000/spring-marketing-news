@@ -39,7 +39,7 @@ Deno.serve(async () => {
     return json({ success: false, error: 'Ingen artikler denne uge' })
   }
 
-  // Byg prompt til Gemini
+  // Byg artikel-liste til prompt
   const articleList = articles
     .map((a, i) => {
       const src = (a.sources as { name: string } | null)?.name ?? ''
@@ -58,13 +58,22 @@ Uge ${currentWeek}, ${currentYear} — ${articles.length} artikler fra ${uniqueS
 
 ${articleList}
 
-Skriv et ugentligt digest på dansk med:
-1. En kort intro (2-3 sætninger om ugens overordnede tema)
-2. Top 3 vigtigste tendenser med korte forklaringer
-3. En "Ikke gå glip af"-sektion med 2-3 specifikke artikler
+Returner KUN dette JSON — ingen markdown, ingen forklaring:
+{
+  "intro": "2-3 sætninger om ugens overordnede tema. Konkret og specifik.",
+  "trends": [
+    { "title": "Kort tendenstitel", "body": "2-3 sætninger der forklarer tendensen konkret med eksempler fra artiklerne." },
+    { "title": "Kort tendenstitel", "body": "2-3 sætninger der forklarer tendensen konkret med eksempler fra artiklerne." },
+    { "title": "Kort tendenstitel", "body": "2-3 sætninger der forklarer tendensen konkret med eksempler fra artiklerne." }
+  ],
+  "highlights": [
+    { "title": "Eksakt artikkeltitel", "source": "Kildnavn", "why": "1-2 sætninger om hvorfor denne artikel er vigtig at læse." },
+    { "title": "Eksakt artikkeltitel", "source": "Kildnavn", "why": "1-2 sætninger om hvorfor denne artikel er vigtig at læse." },
+    { "title": "Eksakt artikkeltitel", "source": "Kildnavn", "why": "1-2 sætninger om hvorfor denne artikel er vigtig at læse." }
+  ]
+}
 
-Skriv direkte og konkret. Ingen floskler. Max 400 ord.
-Returner KUN teksten — ingen JSON, ingen markdown-headers.`
+Skriv direkte og konkret. Ingen floskler. Brug kun artikler fra listen ovenfor.`
 
   const apiKey = Deno.env.get('GEMINI_API_KEY')
   if (!apiKey) return json({ success: false, error: 'Ingen Gemini API key' })
@@ -77,15 +86,19 @@ Returner KUN teksten — ingen JSON, ingen markdown-headers.`
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.4, maxOutputTokens: 800 },
+          generationConfig: { temperature: 0.3, maxOutputTokens: 1500 },
         }),
       }
     )
 
     const data = await res.json()
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+    const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim()
 
-    if (!content) return json({ success: false, error: 'Gemini returnerede intet indhold' })
+    if (!cleaned) return json({ success: false, error: 'Gemini returnerede intet indhold' })
+
+    // Valider at det er gyldigt JSON
+    JSON.parse(cleaned)
 
     // Slet evt. eksisterende global digest for denne uge
     await supabase
@@ -95,13 +108,13 @@ Returner KUN teksten — ingen JSON, ingen markdown-headers.`
       .eq('week_number', currentWeek)
       .eq('year', currentYear)
 
-    // Gem nyt digest
+    // Gem nyt digest (content er JSON-streng)
     await supabase
       .from('digests')
       .insert({
         week_number: currentWeek,
         year: currentYear,
-        content,
+        content: cleaned,
         article_count: articles.length,
         source_count: uniqueSources.size,
         user_id: null,
