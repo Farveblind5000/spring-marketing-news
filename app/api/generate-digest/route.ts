@@ -84,7 +84,7 @@ export async function POST() {
         ?.replace('•', '')
         .trim()
         .slice(0, 120) ?? ''
-      return `${i + 1}. [${a.topic?.toUpperCase() ?? 'GENEREL'}] ${a.title} — ${src}\n   URL: ${a.url ?? ''}${firstBullet ? `\n   ${firstBullet}` : ''}`
+      return `${i + 1}. [${a.topic?.toUpperCase() ?? 'GENEREL'}] ${a.title} — ${src}${firstBullet ? `\n   ${firstBullet}` : ''}`
     })
     .join('\n')
 
@@ -135,6 +135,17 @@ export async function POST() {
 
     const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim()
     const parsed = JSON.parse(cleaned)
+
+    // Berig highlights med URL ved at matche titel mod articles-arrayet
+    if (Array.isArray(parsed.highlights)) {
+      parsed.highlights = parsed.highlights.map((h: { title: string; source: string; why: string }) => {
+        const match = articles.find(a =>
+          a.title?.toLowerCase().includes(h.title?.toLowerCase().slice(0, 30)) ||
+          h.title?.toLowerCase().includes(a.title?.toLowerCase().slice(0, 30))
+        )
+        return { ...h, url: match?.url ?? null }
+      })
+    }
 
     // Slet eksisterende digest for denne uge for denne bruger
     await supabase
