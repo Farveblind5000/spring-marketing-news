@@ -102,8 +102,18 @@ Returner præcis dette JSON-objekt — ingen markdown, ingen forklaring:
     const raw = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
 
     if (!raw) {
-      const reason = geminiData.candidates?.[0]?.finishReason ?? 'ukendt'
-      return NextResponse.json({ error: `Gemini returnerede intet (finishReason: ${reason})` }, { status: 500 })
+      // Debug: returner fuld Gemini-respons så vi kan se hvad der sker
+      return NextResponse.json({
+        error: 'Gemini returnerede intet indhold',
+        debug: {
+          httpStatus: res.status,
+          candidatesLength: geminiData.candidates?.length ?? 0,
+          finishReason: geminiData.candidates?.[0]?.finishReason,
+          promptFeedback: geminiData.promptFeedback,
+          geminiError: geminiData.error,
+          firstCandidate: geminiData.candidates?.[0],
+        }
+      }, { status: 500 })
     }
 
     const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim()
