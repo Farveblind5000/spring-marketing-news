@@ -1,65 +1,221 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import SaveButton from '@/app/components/SaveButton'
 
-export default function Home() {
+function formatDate(iso: string | null): string {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })
+}
+
+export default async function FeedPage() {
+  const supabase = await createClient()
+
+  // Bruger (til at vide hvilke artikler der er gemt)
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Hent artikler + kildenavn, nyeste først
+  const { data: articles } = await supabase
+    .from('articles')
+    .select('id, title, url, topic, published_at, summary, relevance_score, read_time_min, sources(name)')
+    .order('scraped_at', { ascending: false })
+    .limit(50)
+
+  // Brugerens gemte artikel-IDs
+  let savedIds = new Set<string>()
+  if (user) {
+    const { data: saves } = await supabase
+      .from('user_saves')
+      .select('article_id')
+    if (saves) savedIds = new Set(saves.map(s => s.article_id))
+  }
+
+  // Antal aktive kilder til LIVE-indikatoren
+  const { count: sourceCount } = await supabase
+    .from('sources')
+    .select('*', { count: 'exact', head: true })
+    .eq('active', true)
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <>
+      {/* ── NAV ── */}
+      <nav className="nav-glass sticky top-0 z-50 flex items-center justify-between px-[50px] py-6">
+        <Link
+          href="/"
+          className="flex items-baseline gap-[10px] text-[22px] font-bold"
+          style={{ color: 'var(--offblack)' }}
+        >
+          Spring<b style={{ color: 'var(--orange)' }}>CC</b>
+          <span
+            className="text-[12px] font-medium uppercase border-l pl-[10px]"
+            style={{ color: 'var(--gunmetal)', borderColor: 'rgba(72,72,72,0.3)' }}
+          >
+            News Intel
+          </span>
+        </Link>
+
+        <div className="flex items-center gap-9">
+          <Link href="/" className="text-[16px] font-medium" style={{ color: 'var(--orange)' }}>
+            Feed
+          </Link>
+          <Link
+            href="/saved"
+            className="text-[16px] font-medium transition-colors hover:text-[var(--orange)]"
+            style={{ color: 'var(--offblack)' }}
+          >
+            Gemte artikler
+          </Link>
+          <Link
+            href="/digest"
+            className="text-[16px] font-medium transition-colors hover:text-[var(--orange)]"
+            style={{ color: 'var(--offblack)' }}
+          >
+            Ugentligt digest
+          </Link>
+        </div>
+
+        {user ? (
+          <Link href="/saved">
+            <button className="btn-secondary px-6 py-3 text-[16px]">{user.email?.split('@')[0]}</button>
+          </Link>
+        ) : (
+          <Link href="/login">
+            <button className="btn-secondary px-6 py-3 text-[16px]">Log ind</button>
+          </Link>
+        )}
+      </nav>
+
+      {/* ── PAGE ── */}
+      <main style={{ maxWidth: 1080, margin: '0 auto', padding: '56px 50px 80px' }}>
+
+        {/* HEADER */}
+        <header style={{ marginBottom: 48 }}>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="live-dot w-2 h-2 rounded-full" style={{ background: 'var(--orange)' }} />
+            <p className="eyebrow m-0">{sourceCount ?? 0} kilder scannet i morges</p>
+          </div>
+          <h1 style={{ fontWeight: 400, fontSize: 56, lineHeight: 1, color: 'var(--offblack)', margin: 0 }}>
+            Dit feed.
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+        </header>
+
+        {/* FILTER TABS */}
+        <div
+          className="flex items-center gap-2 mb-8 pb-5"
+          style={{ borderBottom: '1px solid rgba(72,72,72,0.18)' }}
+        >
+          {['Alle', 'AI', 'Marketing'].map((label) => (
+            <button
+              key={label}
+              className="px-4 py-2 text-[13px] font-medium rounded-[60px] border transition-all"
+              style={{
+                background: label === 'Alle' ? 'var(--offblack)' : 'transparent',
+                color: label === 'Alle' ? 'var(--white)' : 'var(--offblack)',
+                borderColor: label === 'Alle' ? 'var(--offblack)' : 'rgba(72,72,72,0.18)',
+              }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              {label}
+            </button>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        {/* ARTICLE LIST */}
+        {!articles?.length ? (
+          <p style={{ color: 'var(--gunmetal)', fontSize: 16 }}>Ingen artikler endnu — kør scraperen.</p>
+        ) : (
+          <div className="flex flex-col">
+            {articles.map((article, i) => {
+              const sourceName = (article.sources as { name: string } | null)?.name ?? ''
+              const topic = article.topic as 'ai' | 'marketing' | 'both'
+
+              return (
+                <div
+                  key={article.id}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '64px 1fr auto',
+                    gap: 28,
+                    padding: '24px 0',
+                    borderTop: `1px solid rgba(72,72,72,${i === 0 ? '0.18' : '0.12'})`,
+                    alignItems: 'start',
+                  }}
+                >
+                  {/* Index */}
+                  <div
+                    style={{
+                      fontFamily: 'ui-monospace, "SF Mono", monospace',
+                      fontSize: 13,
+                      color: 'var(--orange)',
+                      paddingTop: 4,
+                    }}
+                  >
+                    — {String(i + 1).padStart(2, '0')}
+                  </div>
+
+                  {/* Main */}
+                  <a
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <div className="flex items-center gap-2 mb-2" style={{ fontSize: 12, color: 'var(--gunmetal)' }}>
+                      <span
+                        className={`eyebrow px-2 py-[3px] rounded-[40px] border text-[11px] badge-${topic}`}
+                        style={{ borderColor: 'currentColor' }}
+                      >
+                        {topic === 'ai' ? 'AI' : 'Marketing'}
+                      </span>
+                      <span>{sourceName}</span>
+                      <span
+                        className="rounded-full opacity-50"
+                        style={{ width: 3, height: 3, background: 'var(--gunmetal)', display: 'inline-block' }}
+                      />
+                      <span>
+                        {formatDate(article.published_at)} · {article.read_time_min ?? 1} min
+                      </span>
+                    </div>
+                    <h2
+                      className="group-hover:text-[var(--orange)] transition-colors"
+                      style={{ fontWeight: 400, fontSize: 22, lineHeight: 1, margin: '0 0 12px', color: 'var(--offblack)' }}
+                    >
+                      {article.title}
+                    </h2>
+                    {article.summary && (
+                      <p style={{ fontSize: 14, color: 'var(--gunmetal)', lineHeight: 1.5, margin: 0 }}>
+                        {article.summary}
+                      </p>
+                    )}
+                  </a>
+
+                  {/* Score + Gem */}
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    {article.relevance_score && (
+                      <span style={{ fontWeight: 500, fontSize: 18, color: 'var(--offblack)', fontVariantNumeric: 'tabular-nums' }}>
+                        {Number(article.relevance_score).toFixed(1)}
+                        <small style={{ color: 'var(--gunmetal)', fontWeight: 400, fontSize: 12 }}> /10</small>
+                      </span>
+                    )}
+                    <SaveButton
+                      articleId={article.id}
+                      initialSaved={savedIds.has(article.id)}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </main>
-    </div>
-  );
+
+      <style>{`
+        .live-dot { animation: livepulse 1.6s ease-out infinite; }
+        @keyframes livepulse {
+          0%   { box-shadow: 0 0 0 0 rgba(255,55,0,0.5); }
+          70%  { box-shadow: 0 0 0 8px rgba(255,55,0,0); }
+          100% { box-shadow: 0 0 0 0 rgba(255,55,0,0); }
+        }
+      `}</style>
+    </>
+  )
 }
