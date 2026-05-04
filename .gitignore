@@ -36,6 +36,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# supabase cli binary (ikke push til GitHub)
+/supabase-cli/
+
+# supabase temp filer
+/supabase/.temp/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
