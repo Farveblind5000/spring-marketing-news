@@ -9,6 +9,26 @@ function weekNumber(date: Date): number {
   return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
 }
 
+// Hent prompt-template fra Supabase settings — fallback til hardkodet
+async function fetchPromptTemplate(supabase: Awaited<ReturnType<typeof createClient>>): Promise<string> {
+  const { data } = await supabase
+    .from('settings')
+    .select('content')
+    .eq('key', 'digest_prompt')
+    .maybeSingle()
+
+  if (data?.content) return data.content
+
+  // Fallback hvis settings-tabellen ikke findes endnu
+  return `Du er redaktør på et dansk AI & marketing intelligence-feed. Uge {{week}}, {{year}}.
+
+Brugeren har selv gemt og valgt disse {{article_count}} artikler (fra {{source_count}} kilder):
+{{article_list}}
+
+Returner præcis dette JSON-objekt — ingen markdown, ingen forklaring:
+{"intro":"[2 sætninger om hvad brugeren har fokuseret på denne uge]","trends":[{"title":"[tendenstitel]","body":"[2 sætninger]"},{"title":"[tendenstitel]","body":"[2 sætninger]"},{"title":"[tendenstitel]","body":"[2 sætninger]"}],"highlights":[{"title":"[artikkeltitel]","source":"[kilde]","why":"[1 sætning]"},{"title":"[artikkeltitel]","source":"[kilde]","why":"[1 sætning]"},{"title":"[artikkeltitel]","source":"[kilde]","why":"[1 sætning]"}]}`
+}
+
 export async function POST() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -32,7 +52,6 @@ export async function POST() {
     return NextResponse.json({ error: 'Ingen gemte artikler' }, { status: 400 })
   }
 
-  // Flatten og rens artikel-data
   type ArticleRow = {
     id: string
     title: string
@@ -55,7 +74,6 @@ export async function POST() {
 
   const uniqueSources = new Set(articles.map(a => a.sources?.name).filter(Boolean))
 
-  // Kompakt artikel-liste til prompt
   const articleList = articles
     .map((a, i) => {
       const src = a.sources?.name ?? ''
@@ -69,13 +87,14 @@ export async function POST() {
     })
     .join('\n')
 
-  const prompt = `Du er redaktør på et dansk AI & marketing intelligence-feed. Uge ${currentWeek}, ${currentYear}.
-
-Brugeren har selv gemt og valgt disse ${articles.length} artikler (fra ${uniqueSources.size} kilder):
-${articleList}
-
-Returner præcis dette JSON-objekt — ingen markdown, ingen forklaring:
-{"intro":"[2 sætninger om hvad brugeren har fokuseret på denne uge baseret på de gemte artikler]","trends":[{"title":"[tendenstitel]","body":"[2 sætninger med konkrete eksempler fra artiklerne]"},{"title":"[tendenstitel]","body":"[2 sætninger med konkrete eksempler fra artiklerne]"},{"title":"[tendenstitel]","body":"[2 sætninger med konkrete eksempler fra artiklerne]"}],"highlights":[{"title":"[eksakt artikkeltitel fra listen]","source":"[kilde]","why":"[1 sætning om hvorfor den er vigtig]"},{"title":"[eksakt artikkeltitel fra listen]","source":"[kilde]","why":"[1 sætning om hvorfor den er vigtig]"},{"title":"[eksakt artikkeltitel fra listen]","source":"[kilde]","why":"[1 sætning om hvorfor den er vigtig]"}]}`
+  // Hent prompt-template fra Supabase og erstat variabler
+  const template = await fetchPromptTemplate(supabase)
+  const prompt = template
+    .replace(/\{\{week\}\}/g, String(currentWeek))
+    .replace(/\{\{year\}\}/g, String(currentYear))
+    .replace(/\{\{article_count\}\}/g, String(articles.length))
+    .replace(/\{\{source_count\}\}/g, String(uniqueSources.size))
+    .replace(/\{\{article_list\}\}/g, articleList)
 
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
@@ -102,16 +121,13 @@ Returner præcis dette JSON-objekt — ingen markdown, ingen forklaring:
     const raw = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
 
     if (!raw) {
-      // Debug: returner fuld Gemini-respons så vi kan se hvad der sker
       return NextResponse.json({
         error: 'Gemini returnerede intet indhold',
         debug: {
           httpStatus: res.status,
-          candidatesLength: geminiData.candidates?.length ?? 0,
           finishReason: geminiData.candidates?.[0]?.finishReason,
           promptFeedback: geminiData.promptFeedback,
           geminiError: geminiData.error,
-          firstCandidate: geminiData.candidates?.[0],
         }
       }, { status: 500 })
     }
@@ -127,7 +143,6 @@ Returner præcis dette JSON-objekt — ingen markdown, ingen forklaring:
       .eq('week_number', currentWeek)
       .eq('year', currentYear)
 
-    // Gem nyt personligt digest
     await supabase
       .from('digests')
       .insert({
