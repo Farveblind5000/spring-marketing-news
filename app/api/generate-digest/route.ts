@@ -42,7 +42,7 @@ export async function POST() {
     .from('user_saves')
     .select(`
       articles (
-        id, title, summary, topic,
+        id, title, url, summary, topic,
         sources ( name )
       )
     `)
@@ -55,6 +55,7 @@ export async function POST() {
   type ArticleRow = {
     id: string
     title: string
+    url: string | null
     summary: string | null
     topic: string | null
     sources: { name: string } | null
@@ -83,7 +84,7 @@ export async function POST() {
         ?.replace('•', '')
         .trim()
         .slice(0, 120) ?? ''
-      return `${i + 1}. [${a.topic?.toUpperCase() ?? 'GENEREL'}] ${a.title} — ${src}${firstBullet ? `\n   ${firstBullet}` : ''}`
+      return `${i + 1}. [${a.topic?.toUpperCase() ?? 'GENEREL'}] ${a.title} — ${src}\n   URL: ${a.url ?? ''}${firstBullet ? `\n   ${firstBullet}` : ''}`
     })
     .join('\n')
 

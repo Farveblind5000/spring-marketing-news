@@ -14,7 +14,7 @@ function weekNumber(date: Date): number {
 interface DigestContent {
   intro: string
   trends: { title: string; body: string }[]
-  highlights: { title: string; source: string; why: string }[]
+  highlights: { title: string; source: string; url?: string; why: string }[]
 }
 
 function parseDigestContent(raw: string): DigestContent | null {
@@ -159,13 +159,36 @@ export default async function DigestPage() {
                     border: '1px solid rgba(72,72,72,0.12)',
                     borderRadius: 12,
                     padding: '18px 22px',
+                    transition: 'border-color 0.15s',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
                       <span style={{ color: 'var(--orange)', fontWeight: 700, fontSize: 16, lineHeight: '22px', flexShrink: 0 }}>→</span>
-                      <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--offblack)', margin: 0, lineHeight: '22px' }}>
-                        {h.title}
-                        <span style={{ fontWeight: 400, color: 'var(--gunmetal)', marginLeft: 8 }}>— {h.source}</span>
-                      </p>
+                      <div style={{ flex: 1 }}>
+                        {h.url ? (
+                          <a
+                            href={h.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontWeight: 600,
+                              fontSize: 15,
+                              color: 'var(--offblack)',
+                              textDecoration: 'none',
+                              lineHeight: '22px',
+                              display: 'inline',
+                            }}
+                            onMouseOver={e => (e.currentTarget.style.color = 'var(--orange)')}
+                            onMouseOut={e => (e.currentTarget.style.color = 'var(--offblack)')}
+                          >
+                            {h.title}
+                          </a>
+                        ) : (
+                          <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--offblack)', lineHeight: '22px' }}>
+                            {h.title}
+                          </span>
+                        )}
+                        <span style={{ fontWeight: 400, color: 'var(--gunmetal)', marginLeft: 8, fontSize: 15 }}>— {h.source}</span>
+                      </div>
                     </div>
                     <p style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--gunmetal)', margin: '0 0 0 26px' }}>
                       {h.why}
