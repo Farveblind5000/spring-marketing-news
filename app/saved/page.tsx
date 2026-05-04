@@ -14,25 +14,25 @@ export default async function SavedPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Hent gemte artikel-IDs
   const { data: saves } = await supabase
     .from('user_saves')
-    .select(`
-      article_id,
-      saved_at,
-      articles (
-        id, title, url, topic, published_at, summary, relevance_score, read_time_min,
-        sources ( name )
-      )
-    `)
+    .select('article_id')
     .order('saved_at', { ascending: false })
 
-  const articles = (saves ?? [])
-    .map(s => s.articles as unknown as {
-      id: string; title: string; url: string; topic: string;
-      published_at: string | null; summary: string | null;
-      relevance_score: number | null; read_time_min: number | null;
-      sources: { name: string } | null
-    } | null)
+  const articleIds = (saves ?? []).map(s => s.article_id).filter(Boolean)
+
+  // Hent artiklerne — samme query-mønster som feed-siden
+  const { data: articles } = articleIds.length
+    ? await supabase
+        .from('articles')
+        .select('id, title, url, topic, published_at, summary, relevance_score, read_time_min, sources(name)')
+        .in('id', articleIds)
+    : { data: [] }
+
+  // Bevar rækkefølgen fra user_saves
+  const sorted = articleIds
+    .map(id => articles?.find(a => a.id === id))
     .filter(Boolean)
 
   return (
@@ -85,10 +85,10 @@ export default async function SavedPage() {
           <h1 style={{ fontWeight: 400, fontSize: 56, lineHeight: 1, color: 'var(--offblack)', margin: '0 0 12px' }}>
             Gemte artikler.
           </h1>
-          <p className="eyebrow m-0">{articles.length} artikel{articles.length !== 1 ? 'er' : ''} gemt</p>
+          <p className="eyebrow m-0">{sorted.length} artikel{sorted.length !== 1 ? 'er' : ''} gemt</p>
         </header>
 
-        {articles.length === 0 ? (
+        {sorted.length === 0 ? (
           <div style={{ paddingTop: 40 }}>
             <p style={{ color: 'var(--gunmetal)', fontSize: 16, margin: '0 0 24px' }}>
               Du har ikke gemt nogen artikler endnu.
@@ -99,9 +99,9 @@ export default async function SavedPage() {
           </div>
         ) : (
           <div className="flex flex-col">
-            {articles.map((article, i) => {
+            {sorted.map((article, i) => {
               if (!article) return null
-              const sourceName = article.sources?.name ?? ''
+              const sourceName = (article.sources as unknown as { name: string } | null)?.name ?? ''
               const topic = article.topic as 'ai' | 'marketing' | 'both'
 
               return (
