@@ -19,14 +19,72 @@ async function fetchPromptTemplate(supabase: Awaited<ReturnType<typeof createCli
 
   if (data?.content) return data.content
 
-  // Fallback hvis settings-tabellen ikke findes endnu
+  // Fallback: plain text KEY:-format
   return `Du er redaktør på et dansk AI & marketing intelligence-feed. Uge {{week}}, {{year}}.
 
 Brugeren har selv gemt og valgt disse {{article_count}} artikler (fra {{source_count}} kilder):
 {{article_list}}
 
-Returner præcis dette JSON-objekt — ingen markdown, ingen forklaring:
-{"intro":"[2 sætninger om hvad brugeren har fokuseret på denne uge]","trends":[{"title":"[tendenstitel]","body":"[2 sætninger]"},{"title":"[tendenstitel]","body":"[2 sætninger]"},{"title":"[tendenstitel]","body":"[2 sætninger]"}],"highlights":[{"title":"[artikkeltitel]","source":"[kilde]","why":"[1 sætning]"},{"title":"[artikkeltitel]","source":"[kilde]","why":"[1 sætning]"},{"title":"[artikkeltitel]","source":"[kilde]","why":"[1 sætning]"}]}`
+Svar med præcis dette format. Behold KEY:-præfikserne. Erstat kun [] med dit indhold:
+
+INTRO: [2 sætninger om hvad brugeren har fokuseret på denne uge]
+
+TREND1_TITLE: [kort tendenstitel]
+TREND1_BODY: [2 sætninger med konkrete eksempler]
+
+TREND2_TITLE: [kort tendenstitel]
+TREND2_BODY: [2 sætninger med konkrete eksempler]
+
+TREND3_TITLE: [kort tendenstitel]
+TREND3_BODY: [2 sætninger med konkrete eksempler]
+
+HIGHLIGHT1_TITLE: [eksakt artikkeltitel fra listen]
+HIGHLIGHT1_SOURCE: [kilde]
+HIGHLIGHT1_WHY: [1 sætning om hvorfor den er vigtig]
+
+HIGHLIGHT2_TITLE: [eksakt artikkeltitel fra listen]
+HIGHLIGHT2_SOURCE: [kilde]
+HIGHLIGHT2_WHY: [1 sætning om hvorfor den er vigtig]
+
+HIGHLIGHT3_TITLE: [eksakt artikkeltitel fra listen]
+HIGHLIGHT3_SOURCE: [kilde]
+HIGHLIGHT3_WHY: [1 sætning om hvorfor den er vigtig]`
+}
+
+// Parser Geminis KEY:-format til DigestContent
+function parseKeyFormat(text: string) {
+  const fields: Record<string, string> = {}
+  const lines = text.split('\n')
+  let currentKey = ''
+  const currentParts: string[] = []
+
+  for (const line of lines) {
+    const match = line.match(/^([A-Z0-9_]+):\s*(.*)$/)
+    if (match) {
+      if (currentKey) fields[currentKey] = currentParts.join(' ').trim()
+      currentKey = match[1]
+      currentParts.length = 0
+      if (match[2].trim()) currentParts.push(match[2].trim())
+    } else if (currentKey && line.trim()) {
+      currentParts.push(line.trim())
+    }
+  }
+  if (currentKey) fields[currentKey] = currentParts.join(' ').trim()
+
+  return {
+    intro: fields['INTRO'] ?? '',
+    trends: [1, 2, 3]
+      .map(i => ({ title: fields[`TREND${i}_TITLE`] ?? '', body: fields[`TREND${i}_BODY`] ?? '' }))
+      .filter(t => t.title),
+    highlights: [1, 2, 3]
+      .map(i => ({
+        title: fields[`HIGHLIGHT${i}_TITLE`] ?? '',
+        source: fields[`HIGHLIGHT${i}_SOURCE`] ?? '',
+        why: fields[`HIGHLIGHT${i}_WHY`] ?? '',
+        url: null as string | null,
+      }))
+      .filter(h => h.title),
+  }
 }
 
 export async function POST() {
@@ -37,7 +95,6 @@ export async function POST() {
     return NextResponse.json({ error: 'Ikke logget ind' }, { status: 401 })
   }
 
-  // Hent brugerens gemte artikler med artikeldetaljer
   const { data: saves } = await supabase
     .from('user_saves')
     .select(`
@@ -88,7 +145,6 @@ export async function POST() {
     })
     .join('\n')
 
-  // Hent prompt-template fra Supabase og erstat variabler
   const template = await fetchPromptTemplate(supabase)
   const prompt = template
     .replace(/\{\{week\}\}/g, String(currentWeek))
@@ -110,10 +166,7 @@ export async function POST() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 2000,
-          },
+          generationConfig: { temperature: 0.3, maxOutputTokens: 2000 },
         }),
       }
     )
@@ -124,58 +177,40 @@ export async function POST() {
     if (!raw) {
       return NextResponse.json({
         error: 'Gemini returnerede intet indhold',
-        debug: {
-          httpStatus: res.status,
-          finishReason: geminiData.candidates?.[0]?.finishReason,
-          promptFeedback: geminiData.promptFeedback,
-          geminiError: geminiData.error,
-        }
+        debug: { finishReason: geminiData.candidates?.[0]?.finishReason, geminiError: geminiData.error }
       }, { status: 500 })
     }
 
-    // Ekstraher JSON: find første { og sidste }, fjern alt udenfor
-    const start = raw.indexOf('{')
-    const end = raw.lastIndexOf('}')
-    const extracted = (start !== -1 && end !== -1) ? raw.slice(start, end + 1) : raw
+    // Parser plain text KEY:-format → DigestContent
+    const parsed = parseKeyFormat(raw)
 
-    // Rens: erstat linjeskift/tabs med mellemrum (ugyldige i JSON-strenge)
-    const cleaned = extracted
-      .replace(/\r\n/g, ' ')
-      .replace(/[\r\n\t]/g, ' ')
-      .replace(/ {2,}/g, ' ')
-      .trim()
-
-    const parsed = JSON.parse(cleaned)
-
-    // Berig highlights med URL ved at matche titel mod articles-arrayet
-    if (Array.isArray(parsed.highlights)) {
-      parsed.highlights = parsed.highlights.map((h: { title: string; source: string; why: string }) => {
-        const match = articles.find(a =>
-          a.title?.toLowerCase().includes(h.title?.toLowerCase().slice(0, 30)) ||
-          h.title?.toLowerCase().includes(a.title?.toLowerCase().slice(0, 30))
-        )
-        return { ...h, url: match?.url ?? null }
-      })
+    if (!parsed.intro) {
+      return NextResponse.json({ error: 'Kunne ikke parse Gemini-svar', raw: raw.slice(0, 300) }, { status: 500 })
     }
 
-    // Slet eksisterende digest for denne uge for denne bruger
-    await supabase
-      .from('digests')
-      .delete()
+    // Berig highlights med URL via titel-match
+    parsed.highlights = parsed.highlights.map(h => {
+      const match = articles.find(a =>
+        a.title?.toLowerCase().includes(h.title?.toLowerCase().slice(0, 30)) ||
+        h.title?.toLowerCase().includes(a.title?.toLowerCase().slice(0, 30))
+      )
+      return { ...h, url: match?.url ?? null }
+    })
+
+    // Slet eksisterende og gem nyt digest
+    await supabase.from('digests').delete()
       .eq('user_id', user.id)
       .eq('week_number', currentWeek)
       .eq('year', currentYear)
 
-    await supabase
-      .from('digests')
-      .insert({
-        week_number: currentWeek,
-        year: currentYear,
-        content: JSON.stringify(parsed),
-        article_count: articles.length,
-        source_count: uniqueSources.size,
-        user_id: user.id,
-      })
+    await supabase.from('digests').insert({
+      week_number: currentWeek,
+      year: currentYear,
+      content: JSON.stringify(parsed),
+      article_count: articles.length,
+      source_count: uniqueSources.size,
+      user_id: user.id,
+    })
 
     return NextResponse.json({ success: true })
 
