@@ -110,3 +110,6 @@ a {
 /* ── Topic badges ── */
 .badge-ai        { color: var(--orange); }
 .badge-marketing { color: #5C8B7E; }
+
+/* ── Digest highlight link ── */
+.digest-highlight-link:hover { color: var(--orange) !important; }

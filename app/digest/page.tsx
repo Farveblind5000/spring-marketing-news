@@ -169,6 +169,7 @@ export default async function DigestPage() {
                             href={h.url}
                             target="_blank"
                             rel="noopener noreferrer"
+                            className="digest-highlight-link"
                             style={{
                               fontWeight: 600,
                               fontSize: 15,
@@ -177,8 +178,6 @@ export default async function DigestPage() {
                               lineHeight: '22px',
                               display: 'inline',
                             }}
-                            onMouseOver={e => (e.currentTarget.style.color = 'var(--orange)')}
-                            onMouseOut={e => (e.currentTarget.style.color = 'var(--offblack)')}
                           >
                             {h.title}
                           </a>
