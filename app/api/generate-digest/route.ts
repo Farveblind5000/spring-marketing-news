@@ -113,7 +113,6 @@ export async function POST() {
           generationConfig: {
             temperature: 0.3,
             maxOutputTokens: 2000,
-            responseMimeType: 'application/json',
           },
         }),
       }
@@ -134,11 +133,17 @@ export async function POST() {
       }, { status: 500 })
     }
 
-    // Ekstraher JSON-objektet — find første { og sidste }
+    // Ekstraher JSON: find første { og sidste }, fjern alt udenfor
     const start = raw.indexOf('{')
     const end = raw.lastIndexOf('}')
     const extracted = (start !== -1 && end !== -1) ? raw.slice(start, end + 1) : raw
-    const cleaned = extracted.replace(/```json\n?|\n?```/g, '').trim()
+
+    // Rens: erstat linjeskift/tabs med mellemrum (ugyldige i JSON-strenge)
+    const cleaned = extracted
+      .replace(/\r\n/g, ' ')
+      .replace(/[\r\n\t]/g, ' ')
+      .replace(/ {2,}/g, ' ')
+      .trim()
 
     const parsed = JSON.parse(cleaned)
 
