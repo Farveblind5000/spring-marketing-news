@@ -113,6 +113,7 @@ export async function POST() {
           generationConfig: {
             temperature: 0.3,
             maxOutputTokens: 2000,
+            responseMimeType: 'application/json',
           },
         }),
       }
@@ -133,7 +134,12 @@ export async function POST() {
       }, { status: 500 })
     }
 
-    const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim()
+    // Ekstraher JSON-objektet — find første { og sidste }
+    const start = raw.indexOf('{')
+    const end = raw.lastIndexOf('}')
+    const extracted = (start !== -1 && end !== -1) ? raw.slice(start, end + 1) : raw
+    const cleaned = extracted.replace(/```json\n?|\n?```/g, '').trim()
+
     const parsed = JSON.parse(cleaned)
 
     // Berig highlights med URL ved at matche titel mod articles-arrayet
