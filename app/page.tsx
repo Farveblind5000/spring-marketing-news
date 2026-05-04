@@ -124,7 +124,7 @@ export default async function FeedPage() {
         ) : (
           <div className="flex flex-col">
             {articles.map((article, i) => {
-              const sourceName = (article.sources as { name: string } | null)?.name ?? ''
+              const sourceName = (article.sources as unknown as { name: string } | null)?.name ?? ''
               const topic = article.topic as 'ai' | 'marketing' | 'both'
 
               return (
