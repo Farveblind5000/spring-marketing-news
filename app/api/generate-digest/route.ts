@@ -93,7 +93,6 @@ Returner præcis dette JSON-objekt — ingen markdown, ingen forklaring:
           generationConfig: {
             temperature: 0.3,
             maxOutputTokens: 2000,
-            responseMimeType: 'application/json',
           },
         }),
       }
