@@ -27,7 +27,7 @@ export default async function SavedPage() {
     .order('saved_at', { ascending: false })
 
   const articles = (saves ?? [])
-    .map(s => s.articles as {
+    .map(s => s.articles as unknown as {
       id: string; title: string; url: string; topic: string;
       published_at: string | null; summary: string | null;
       relevance_score: number | null; read_time_min: number | null;
