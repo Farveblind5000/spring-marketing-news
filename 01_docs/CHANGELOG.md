@@ -34,10 +34,10 @@ links_to:
 **Commit:** pending — fase 3
 
 ### 2026-05-05 — Sprint 5 #6: Digest viser valgte artikler + udvidet summary
-**Filer:** `app/digest/page.tsx`, `app/api/generate-digest/route.ts`, `01_docs/Prompts/Digest System Prompt.md`
+**Filer:** `app/digest/page.tsx`, `app/api/generate-digest/route.ts`, `app/components/GenerateDigestButton.tsx`, `01_docs/Prompts/Digest System Prompt.md`
 **Begrundelse:** Når bruger har valgt specifikke artikler til digest, skal digest vise dem + en mere fyldestgørende opsummering end ugens generelle digest.
-**Konsekvenser:** Digest-side får ny sektion. Prompten udvides med "udvidet summary"-instruktioner. Genereringen bruger `user_digest_queue` som input.
-**Commit:** pending — fase 2
+**Konsekvenser:** Digest-side viser én kort pr. valgt artikel med 4-6 sætning summary + 3 takeaways. Prompt-format ændret til ART_N_TITLE/SOURCE/SUMMARY/TAKEAWAY1-3 (variabelt antal). Genereringen bruger `user_digest_queue` som input. Gamle digest-format (intro+trends+highlights) detekteres som "legacy" og bruger bedes regenerere.
+**Commit:** 5798ce2
 
 ### 2026-05-05 — Sprint 5 #5: Send til digest-knap på feed
 **Filer:** `app/components/SendToDigestButton.tsx` (ny), `app/page.tsx`, `app/saved/page.tsx`
