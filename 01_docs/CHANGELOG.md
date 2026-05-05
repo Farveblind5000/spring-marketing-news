@@ -31,7 +31,7 @@ links_to:
 - `Ressourcer/` flyttet til separat vault `Obsidian_claude/Claude_design_ref/` (krydsprojekt-viden)
 - `Claude design.md` flyttet samme sted (er hub for general Claude Design knowledge)
 - `Export_import/` slettet (Component Library flyttet til Documentation/)
-**Commit:** pending
+**Commit:** 5173da3
 
 ### 2026-05-05 — Mappe-rename: docs/ → 01_docs/
 **Filer:** `01_docs/` (renamed fra `docs/`), `scripts/sync-prompt.js`, `CLAUDE.md`, `.gitignore`, `.claude/skills/changelog.md`, `01_docs/CLAUDE_RULES.md`
