@@ -21,6 +21,48 @@ links_to:
 
 > Strukturændringer, nye features, schema, breaking changes.
 
+### 2026-05-05 — Sprint 5 #8: Export til PDF + email
+**Filer:** TBD — afventer format-spec
+**Begrundelse:** Brugere skal kunne eksportere digest til PDF (visuel) og email (handlingsrettet).
+**Konsekvenser:** Ny export-knap på digest-siden. Backend-endpoint til PDF-generering. Email via Supabase eller anden service.
+**Commit:** pending — fase 4
+
+### 2026-05-05 — Sprint 5 #7: Cache for korte LLM-opsummeringer
+**Filer:** Supabase `articles` tabel (ny kolonne), nyt API endpoint
+**Begrundelse:** "Kort opsummering"-knap kalder LLM. Global cache (én pr. artikel) sparer omkostning og giver instant UX for 2+ brugere.
+**Konsekvenser:** Schema-tilføjelse: `articles.short_summary TEXT`. Nyt endpoint `/api/short-summary`. UI-knap.
+**Commit:** pending — fase 3
+
+### 2026-05-05 — Sprint 5 #6: Digest viser valgte artikler + udvidet summary
+**Filer:** `app/digest/page.tsx`, `app/api/generate-digest/route.ts`, `01_docs/Prompts/Digest System Prompt.md`
+**Begrundelse:** Når bruger har valgt specifikke artikler til digest, skal digest vise dem + en mere fyldestgørende opsummering end ugens generelle digest.
+**Konsekvenser:** Digest-side får ny sektion. Prompten udvides med "udvidet summary"-instruktioner. Genereringen bruger `user_digest_queue` som input.
+**Commit:** pending — fase 2
+
+### 2026-05-05 — Sprint 5 #5: Send til digest-knap på feed
+**Filer:** `app/components/SendToDigestButton.tsx` (ny), `app/page.tsx`, `app/saved/page.tsx`
+**Begrundelse:** Bruger skal kunne markere artikler eksplicit til digest, separat fra "gem til senere".
+**Konsekvenser:** Ny UI-knap ved siden af bookmark. Skriver til `user_digest_queue`-tabellen.
+**Commit:** pending — fase 2
+
+### 2026-05-05 — Sprint 5 #4: Datamodel — user_digest_queue tabel
+**Filer:** Supabase SQL (ny tabel), TypeScript types
+**Begrundelse:** "Send til digest" og "gem til senere" er konceptuelt forskellige handlinger. Separat tabel undgår sammenblanding.
+**Konsekvenser:** Schema-tilføjelse: `user_digest_queue (id, user_id, article_id, added_at)`. RLS-policy. Eksisterende `user_saves` uberørt.
+**Commit:** pending — fase 2
+
+### 2026-05-05 — Sprint 5 #3: Feed split i "Denne uge" + "Ældre uger"
+**Filer:** `app/page.tsx`
+**Begrundelse:** Brugeren skal nemt skelne mellem nyt og tidligere indhold. Aktuelle uge øverst, ældre nedenfor.
+**Konsekvenser:** Feed-render-logik ændres. Artikler grupperes efter `scraped_at`-uge. To sektioner med headers.
+**Commit:** pending — fase 1
+
+### 2026-05-05 — Sprint 5 #2: Feed begrænset til ≤30 dage gamle artikler
+**Filer:** `app/page.tsx`
+**Begrundelse:** Feedet skal vise relevant nyt indhold, ikke historisk arkiv. 30 dages vindue baseret på `scraped_at`.
+**Konsekvenser:** Query-filter på artikel-fetch. Artikler ældre end 30 dage er ikke længere synlige i feed (men findes stadig i DB).
+**Commit:** pending — fase 1
+
 ### 2026-05-05 — Reorganisering af 01_docs/ struktur
 **Filer:** `01_docs/Documentation/` (ny), `01_docs/Archive/` (ny), `01_docs/Plan/`, `01_docs/Ressourcer/` (flyttet ud), `01_docs/Export_import/` (slettet)
 **Begrundelse:** Fire forskellige typer indhold (planlægning, dokumentation, historisk, generel viden) lå blandet sammen. Risiko for forvirring og dårlig opdaging. Feed Site Plan og Roadmap overlappede.
@@ -80,6 +122,11 @@ links_to:
 ## MINOR
 
 > Bugfixes, tweaks, små rettelser uden strukturpåvirkning.
+
+### 2026-05-05 — Sprint 5 #1: Rename "Ugentligt digest" → "Digest"
+**Filer:** `app/page.tsx`, `app/login/page.tsx`, `app/saved/page.tsx`, `app/digest/page.tsx`, `app/components/GenerateDigestButton.tsx` (hvis nævnt)
+**Beskrivelse:** Forenklet navngivning. "Ugentligt" var overflødigt — det forventes at være ugentligt.
+**Commit:** pending — fase 1
 
 ### 2026-05-04 — Removed event handlers from Server Component
 **Filer:** `app/digest/page.tsx`, `app/globals.css`

@@ -83,8 +83,34 @@ Målgruppe: én eller flere brugere der vil holde sig opdateret på AI + marketi
 - ✅ Konsolidering af kontrol-center til `docs/`
 - ⏳ Mobil-responsiv gennemgang
 
-### Sprint 5 — TBD
-_Ikke planlagt endnu. Tilføj her ved at bruge `/changelog`._
+### Sprint 5 — Curated Digest & Feed Cleanup 📋
+**Periode:** Maj 2026
+
+**Tema:** Brugeren får finkornet kontrol over hvad der ender i digest. Feedet bliver mere relevant via tidsfiltrering og uge-segmentering. Det udvidede digest får sit eget format og export-mulighed.
+
+**Arkitektoniske beslutninger:**
+- Datamodel: ny tabel `user_digest_queue` (separeret fra `user_saves`)
+- Filter-grundlag: `scraped_at` for "1 måned gammel"
+- Cache for korte opsummeringer: global kolonne på `articles`-tabellen
+- Export-formater: PDF + email
+
+**Items (i 4 faser):**
+
+**Fase 1 — Quick wins**
+1. Rename "Ugentligt digest" → "Digest" *(MINOR)*
+2. Feed: kun artikler ≤30 dage gamle (`scraped_at`) *(MAJOR)*
+3. Feed: split i "Denne uge" + "Ældre uger" *(MAJOR)*
+
+**Fase 2 — Send-til-digest flow**
+4. Datamodel: ny tabel `user_digest_queue` *(MAJOR)*
+5. Feed: "Send til digest"-ikon ved siden af gem-knap *(MAJOR)*
+6. Digest: vis valgte artikler + udvidet summary (egen sektion i prompt) *(MAJOR)*
+
+**Fase 3 — Kort opsummering**
+7. Feed: "Kort opsummering"-knap → cached LLM-extract *(MAJOR)*
+
+**Fase 4 — Export**
+8. Digest: Export til PDF + email *(MAJOR — afventer format-spec)*
 
 ---
 
@@ -114,6 +140,18 @@ Sync via `node scripts/sync-prompt.js`. Ingen redeploy ved prompt-ændring.
 ## 📝 Recent Updates
 
 > **Append-only.** Tilføj nye entries i toppen af denne sektion via `/changelog`.
+
+### 2026-05-05 — Sprint 5 planlagt: Curated Digest & Feed Cleanup
+**Type:** new-feature (sprint-planning)
+**Hvad ændres:** 7 nye features + 1 rename, opdelt i 4 faser. Brugeren får eksplicit kontrol over digest-indhold via separat "send til digest"-flow.
+**Hvorfor:** Curation > automation. Digest skal være brugerens valg, ikke algoritmens. Feedet skal kun vise relevant nyt indhold.
+**Påvirker:** Sprint 4 lukket. Sprint 5 åbnet. Datamodel udvides med `user_digest_queue` + global short_summary kolonne.
+
+### 2026-05-05 — Reorganisering af 01_docs/ struktur
+**Type:** scope-shift (workflow)
+**Hvad ændres:** 01_docs/ opdelt i Plan/ (active), Documentation/ (stable), Archive/ (frozen). Generel viden flyttet til separat vault.
+**Hvorfor:** Ryd op før Sprint 5. Feed Site Plan og Roadmap overlappede.
+**Påvirker:** Single source of truth for forward-looking planning. Documentation/ er nu det rigtige sted for stable docs.
 
 ### 2026-05-05 — Changelog-system med skill
 **Type:** new-feature (workflow)
