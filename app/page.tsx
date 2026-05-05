@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import SaveButton from '@/app/components/SaveButton'
+import SendToDigestButton from '@/app/components/SendToDigestButton'
 
 function formatDate(iso: string | null): string {
   if (!iso) return ''
@@ -58,13 +59,16 @@ export default async function FeedPage() {
     else olderWeeks.push(a)
   }
 
-  // Brugerens gemte artikel-IDs
+  // Brugerens gemte artikel-IDs + digest queue
   let savedIds = new Set<string>()
+  let queuedIds = new Set<string>()
   if (user) {
-    const { data: saves } = await supabase
-      .from('user_saves')
-      .select('article_id')
-    if (saves) savedIds = new Set(saves.map(s => s.article_id))
+    const [savesRes, queueRes] = await Promise.all([
+      supabase.from('user_saves').select('article_id'),
+      supabase.from('user_digest_queue').select('article_id'),
+    ])
+    if (savesRes.data) savedIds = new Set(savesRes.data.map(s => s.article_id))
+    if (queueRes.data) queuedIds = new Set(queueRes.data.map(s => s.article_id))
   }
 
   const { count: sourceCount } = await supabase
@@ -143,10 +147,16 @@ export default async function FeedPage() {
               <small style={{ color: 'var(--gunmetal)', fontWeight: 400, fontSize: 12 }}> /10</small>
             </span>
           )}
-          <SaveButton
-            articleId={article.id}
-            initialSaved={savedIds.has(article.id)}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <SendToDigestButton
+              articleId={article.id}
+              initialQueued={queuedIds.has(article.id)}
+            />
+            <SaveButton
+              articleId={article.id}
+              initialSaved={savedIds.has(article.id)}
+            />
+          </div>
         </div>
       </div>
     )

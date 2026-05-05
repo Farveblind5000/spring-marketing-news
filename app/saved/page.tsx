@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import SaveButton from '@/app/components/SaveButton'
+import SendToDigestButton from '@/app/components/SendToDigestButton'
 
 function formatDate(iso: string | null): string {
   if (!iso) return ''
@@ -34,6 +35,12 @@ export default async function SavedPage() {
   const sorted = articleIds
     .map(id => articles?.find(a => a.id === id))
     .filter(Boolean)
+
+  // Hent brugerens digest-queue så vi kan vise korrekt initial state
+  const { data: queueRows } = await supabase
+    .from('user_digest_queue')
+    .select('article_id')
+  const queuedIds = new Set((queueRows ?? []).map(q => q.article_id))
 
   return (
     <>
@@ -173,7 +180,13 @@ export default async function SavedPage() {
                         <small style={{ color: 'var(--gunmetal)', fontWeight: 400, fontSize: 12 }}> /10</small>
                       </span>
                     )}
-                    <SaveButton articleId={article.id} initialSaved={true} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <SendToDigestButton
+                        articleId={article.id}
+                        initialQueued={queuedIds.has(article.id)}
+                      />
+                      <SaveButton articleId={article.id} initialSaved={true} />
+                    </div>
                   </div>
                 </div>
               )
