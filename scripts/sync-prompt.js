@@ -9,10 +9,8 @@ const path = require('path')
 
 // ── Konfiguration ─────────────────────────────────────────────
 
-const OBSIDIAN_NOTE = path.join(
-  'C:\\Users\\mieo\\OneDrive - Spring Family ApS\\Desktop\\Obsidian_claude',
-  'Claude_design\\Prompts\\Digest System Prompt.md'
-)
+// Prompt-noten ligger nu i projektets eget docs/-mappe (konsolideret 2026-05-05)
+const OBSIDIAN_NOTE = path.join(__dirname, '..', 'docs', 'Prompts', 'Digest System Prompt.md')
 
 const ENV_FILE = path.join(__dirname, '..', '.env.local')
 

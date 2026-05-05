@@ -1,0 +1,1873 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Spring CC — Component Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,900&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --orange: #FF3700;
+    --teal: #7FB9C2;
+    --offblack: #282828;
+    --gunmetal: #484848;
+    --neutral: #B9B9B1;
+    --bg: #F4F4F4;
+    --sand: #E6D1B8;
+    --beige: #E5D2B8;
+    --nearwhite: #F8F6F0;
+    --white: #F1F1F1;
+  }
+
+  * { box-sizing: border-box; letter-spacing: 0 !important; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "DM Sans", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--offblack);
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  /* ---------- NAV ---------- */
+  .site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 50px;
+    background: linear-gradient(180deg, rgba(229,210,184,0.7) 0%, rgba(229,210,184,0) 93.62%);
+    backdrop-filter: blur(2px);
+  }
+  .nav-brand {
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.03em;
+    color: var(--offblack);
+  }
+  .nav-brand span { color: var(--orange); }
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    align-items: center;
+  }
+  .nav-link {
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: -0.03em;
+    color: var(--offblack);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .nav-link:hover { color: var(--orange); }
+  .nav-cta {
+    width: 161px;
+    height: 58px;
+    border-radius: 40px;
+    background: rgba(229,210,184,0.4);
+    border: 1px solid var(--orange);
+    backdrop-filter: blur(6px);
+    color: var(--orange);
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -0.03em;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .nav-cta:hover {
+    background: var(--orange);
+    border: 1px solid #FF6F61;
+    color: var(--white);
+    box-shadow: 0px 4px 28px rgba(0,0,0,0.25);
+    backdrop-filter: blur(22px);
+  }
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .hamburger span {
+    width: 34px;
+    height: 3px;
+    background: var(--orange);
+  }
+
+  /* ---------- HAMBURGER ICON COMPONENT ---------- */
+  /* 40×40 button with 34×3 white bars; toggles to X when .is-open */
+  .ham-btn {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    flex: none;
+    --bar-color: #FAFAFA;
+  }
+  /* Closed (top nav bar) uses orange to match brand spec on light bg */
+  #menuOpenBtn:not(.is-open) { --bar-color: var(--orange); }
+  .ham-btn .bar {
+    position: absolute;
+    left: 3px;
+    width: 34px;
+    height: 3px;
+    background: var(--bar-color);
+    transition: top 0.22s cubic-bezier(.4,0,.2,1) 0.12s,
+                transform 0.22s cubic-bezier(.4,0,.2,1),
+                opacity 0.12s linear 0.12s,
+                width 0.18s ease,
+                left 0.18s ease;
+    transform-origin: center;
+  }
+  .ham-btn .bar:nth-child(1) { top: 11px; }
+  .ham-btn .bar:nth-child(2) { top: 18.5px; }
+  .ham-btn .bar:nth-child(3) { top: 26px; }
+  /* Hover (closed): bars spread further apart */
+  .ham-btn:hover:not(.is-open) .bar:nth-child(1) { top: 9px; }
+  .ham-btn:hover:not(.is-open) .bar:nth-child(3) { top: 28px; }
+  /* Open state: top + bottom rotate to X, middle hides */
+  .ham-btn.is-open .bar {
+    transition: top 0.22s cubic-bezier(.4,0,.2,1),
+                transform 0.22s cubic-bezier(.4,0,.2,1) 0.12s,
+                opacity 0.12s linear;
+  }
+  .ham-btn.is-open .bar:nth-child(1) { top: 18.5px; transform: rotate(45deg); }
+  .ham-btn.is-open .bar:nth-child(2) { opacity: 0; }
+  .ham-btn.is-open .bar:nth-child(3) { top: 18.5px; transform: rotate(-45deg); }
+  /* Hover (open): X bars stretch slightly */
+  .ham-btn.is-open:hover .bar:nth-child(1),
+  .ham-btn.is-open:hover .bar:nth-child(3) {
+    width: 40px;
+    left: 0;
+  }
+  /* Variants for showcase: tinted bg + label */
+  .ham-frame {
+    width: 135px;
+    height: 132px;
+    border: 1px dashed rgba(255,55,0,0.55);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--orange);
+    position: relative;
+  }
+  .ham-frame-label {
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- MENU OVERLAY (open nav) ---------- */
+  .menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: var(--orange);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 50px 50px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .menu-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .menu-overlay-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .menu-overlay-brand {
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.03em;
+    color: var(--white);
+  }
+  .menu-overlay-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .menu-overlay-cta {
+    width: 161px;
+    height: 58px;
+    border-radius: 40px;
+    background: rgba(229,210,184,0.4);
+    border: 1px solid var(--white);
+    backdrop-filter: blur(6px);
+    color: var(--white);
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -0.03em;
+    cursor: pointer;
+  }
+  .menu-overlay-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    padding-left: 60px;
+  }
+  .menu-overlay-item {
+    font-weight: 500;
+    font-size: 35px;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    opacity: 0.7;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    text-decoration: none;
+  }
+  .menu-overlay-item:hover {
+    opacity: 1;
+    transform: translateX(8px);
+  }
+  body.menu-open { overflow: hidden; }
+
+  /* ---------- PAGE HEADER ---------- */
+  .page-header {
+    padding: 100px 50px 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .eyebrow {
+    font-weight: 600;
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    color: var(--orange);
+    margin: 0 0 24px;
+  }
+  .page-title {
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 56px;
+    color: #282828;
+    margin: 0 0 28px;
+    line-height: 1;
+    text-align: left;
+  }
+  .page-sub {
+    font-weight: 400;
+    font-size: 18px;
+    letter-spacing: -0.04em;
+    color: var(--gunmetal);
+    max-width: 720px;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  /* ---------- LAYOUT ---------- */
+  section.block {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 60px 50px;
+    border-top: 1px solid var(--neutral);
+  }
+  .block-head {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+    align-items: end;
+  }
+  .block-head h2 {
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 40px;
+    line-height: 1;
+    margin: 0;
+    color: #282828;
+  }
+  .block-head p {
+    font-size: 16px;
+    color: var(--gunmetal);
+    margin: 0;
+    max-width: 560px;
+    line-height: 1.4;
+  }
+  .index-num {
+    font-family: "DM Sans", sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    color: var(--orange);
+    text-transform: uppercase;
+  }
+
+  /* ---------- TYPOGRAPHY SCALE ---------- */
+  .type-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 220px;
+    gap: 32px;
+    align-items: baseline;
+    padding: 20px 0;
+    border-top: 1px solid rgba(72,72,72,0.12);
+  }
+  .type-row:first-child { border-top: none; }
+  .type-meta {
+    font-size: 13px;
+    color: var(--gunmetal);
+    letter-spacing: -0.02em;
+  }
+  .type-meta strong {
+    display: block;
+    color: var(--offblack);
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+    letter-spacing: -0.03em;
+  }
+  .type-spec {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    color: var(--gunmetal);
+    letter-spacing: 0;
+    text-align: right;
+  }
+  .t-display { font-weight: 400; font-size: 80px; line-height: 1; color: #282828; }
+  .t-h1, .t-h2, .t-h3, .t-h4, .t-h5 {
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1;
+    color: #282828;
+    margin: 0 0 28px;
+    text-align: left;
+  }
+  .t-h1 { font-size: 56px; }
+  .t-h2 { font-size: 40px; }
+  .t-h3 { font-size: 28px; }
+  .t-h4 { font-size: 22px; }
+  .t-h5 { font-size: 18px; }
+  .t-h6 { font-weight: 600; font-size: 18px; line-height: 1.2; text-transform: uppercase; }
+
+  /* heading-rule callout */
+  .heading-rule {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 32px;
+    background: white;
+    border: 1px solid rgba(72,72,72,0.1);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    align-items: stretch;
+  }
+  .heading-rule-spec {
+    background: var(--bg);
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid rgba(72,72,72,0.06);
+  }
+  .heading-rule-eyebrow {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gunmetal);
+    margin: 0 0 18px;
+  }
+  .heading-rule-list {
+    margin: 0;
+    display: grid;
+    gap: 0;
+  }
+  .heading-rule-list > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(72,72,72,0.08);
+  }
+  .heading-rule-list > div:first-child { border-top: none; }
+  .heading-rule-list dt {
+    font-size: 13px;
+    color: var(--gunmetal);
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .heading-rule-list dd {
+    margin: 0;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    color: var(--offblack);
+    letter-spacing: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .heading-rule-list .swatch-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(72,72,72,0.15);
+    display: inline-block;
+  }
+  .heading-rule-preview {
+    background: var(--bg);
+    border-radius: 14px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid rgba(72,72,72,0.06);
+    overflow: hidden;
+    gap: 4px;
+  }
+  .heading-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(72,72,72,0.08);
+  }
+  .heading-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .heading-row + .heading-row { padding-top: 20px; }
+  .heading-row-tag {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    color: rgba(72,72,72,0.5);
+  }
+  .heading-row .t-h1,
+  .heading-row .t-h2,
+  .heading-row .t-h3 { margin: 0; }
+  .heading-rule-note {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--gunmetal);
+    margin: 18px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid rgba(72,72,72,0.08);
+  }
+  @media (max-width: 900px) {
+    .heading-rule { grid-template-columns: 1fr; }
+  }
+  .t-body { font-weight: 400; font-size: 16px; line-height: 1.45; color: var(--offblack); }
+  .t-caption { font-weight: 400; font-size: 13px; line-height: 1.4; color: var(--gunmetal); }
+  .t-mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-weight: 400; font-size: 13px; line-height: 1.4; color: var(--offblack); }
+
+  /* ---------- COLOR PALETTE ---------- */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+  }
+  .swatch {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(72,72,72,0.08);
+    background: white;
+  }
+  .swatch-color {
+    height: 140px;
+    position: relative;
+  }
+  .swatch-color::after {
+    content: attr(data-token);
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 500;
+    opacity: 0.55;
+  }
+  .swatch-meta {
+    padding: 14px 16px 16px;
+  }
+  .swatch-name {
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: -0.03em;
+    margin: 0;
+    color: var(--offblack);
+  }
+  .swatch-hex {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    color: var(--gunmetal);
+    margin: 6px 0 0;
+    letter-spacing: 0;
+  }
+  .swatch-use {
+    font-size: 12px;
+    color: var(--gunmetal);
+    margin: 8px 0 0;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+  }
+  .light-token::after { color: rgba(40,40,40,0.6); }
+  .dark-token::after { color: rgba(255,255,255,0.65); }
+
+  /* ---------- BUTTONS ---------- */
+  .btn-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  .btn-cell {
+    background: white;
+    border-radius: 16px;
+    padding: 36px;
+    border: 1px solid rgba(72,72,72,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .btn-cell--dark {
+    background: var(--offblack);
+  }
+  .btn-cell--dark .btn-cell-title,
+  .btn-cell--dark .btn-cell-desc { color: var(--white); }
+  .btn-cell--dark .btn-cell-desc { opacity: 0.6; }
+  .btn-cell-title {
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+  .btn-cell-desc {
+    font-size: 13px;
+    color: var(--gunmetal);
+    margin: -16px 0 0;
+    letter-spacing: -0.02em;
+    line-height: 1.4;
+  }
+  .btn-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn {
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    border-radius: 60px;
+    transition: all 0.18s ease;
+    letter-spacing: -0.03em;
+  }
+  .btn-lg { padding: 22px 38px; font-weight: 500; font-size: 22px; }
+  .btn-sm { padding: 14px 26px; font-weight: 500; font-size: 16px; }
+
+  .btn-primary {
+    background: var(--orange);
+    color: var(--nearwhite);
+    border: 1px solid var(--orange);
+  }
+  .btn-primary:hover {
+    box-shadow: 0px 4px 28px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: rgba(229,210,184,0.4);
+    border: 1px solid var(--orange);
+    color: var(--orange);
+    backdrop-filter: blur(6px);
+  }
+  .btn-secondary:hover {
+    background: var(--orange);
+    border: 1px solid #FF6F61;
+    color: var(--white);
+    box-shadow: 0px 4px 28px rgba(0,0,0,0.25);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--offblack);
+    color: var(--offblack);
+  }
+  .btn-cell--dark .btn-ghost {
+    border: 1px solid var(--white);
+    color: var(--white);
+  }
+  .btn-ghost:hover {
+    background: var(--offblack);
+    color: var(--white);
+  }
+  .btn-cell--dark .btn-ghost:hover {
+    background: var(--white);
+    color: var(--offblack);
+  }
+
+  .btn-disabled {
+    background: var(--neutral);
+    color: rgba(40,40,40,0.5);
+    border: 1px solid var(--neutral);
+    cursor: not-allowed;
+  }
+  .btn-disabled:hover { transform: none; box-shadow: none; }
+
+  /* ---------- FORMS ---------- */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .form-cell {
+    background: white;
+    border: 1px solid rgba(72,72,72,0.08);
+    border-radius: 16px;
+    padding: 32px;
+  }
+  .form-cell h3 {
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0 0 24px;
+    letter-spacing: -0.03em;
+  }
+  .field { margin-bottom: 20px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label {
+    display: block;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: var(--orange);
+    margin-bottom: 8px;
+  }
+  .input, .select {
+    width: 100%;
+    font-family: inherit;
+    font-size: 16px;
+    letter-spacing: -0.03em;
+    padding: 14px 18px;
+    border-radius: 40px;
+    border: 1px solid var(--neutral);
+    background: var(--bg);
+    color: var(--offblack);
+    outline: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .input::placeholder { color: rgba(72,72,72,0.5); }
+  .input:focus, .select:focus {
+    border-color: var(--orange);
+    background: white;
+  }
+  .input--error {
+    border-color: var(--orange);
+    background: rgba(255,55,0,0.04);
+  }
+  .field-help {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: var(--gunmetal);
+    letter-spacing: -0.02em;
+  }
+  .field-error {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: var(--orange);
+    letter-spacing: -0.02em;
+  }
+  .select {
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--orange) 50%),
+      linear-gradient(135deg, var(--orange) 50%, transparent 50%);
+    background-position:
+      calc(100% - 22px) 50%,
+      calc(100% - 16px) 50%;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 44px;
+  }
+
+  .check-row {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    letter-spacing: -0.03em;
+    cursor: pointer;
+    user-select: none;
+  }
+  .check input { display: none; }
+  .check-box {
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid var(--neutral);
+    border-radius: 6px;
+    background: var(--bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  .check-box::after {
+    content: "";
+    width: 10px;
+    height: 6px;
+    border-left: 2px solid var(--white);
+    border-bottom: 2px solid var(--white);
+    transform: rotate(-45deg) translate(1px,-1px) scale(0);
+    transition: transform 0.15s ease;
+  }
+  .check input:checked + .check-box {
+    background: var(--orange);
+    border-color: var(--orange);
+  }
+  .check input:checked + .check-box::after {
+    transform: rotate(-45deg) translate(1px,-1px) scale(1);
+  }
+  .check input:disabled + .check-box {
+    background: var(--neutral);
+    border-color: var(--neutral);
+    opacity: 0.6;
+  }
+  .check.disabled { color: rgba(40,40,40,0.4); cursor: not-allowed; }
+
+  .radio-row {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .radio {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    letter-spacing: -0.03em;
+    cursor: pointer;
+    user-select: none;
+  }
+  .radio input { display: none; }
+  .radio-dot {
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid var(--neutral);
+    border-radius: 50%;
+    background: var(--bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  .radio-dot::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--orange);
+    transform: scale(0);
+    transition: transform 0.15s ease;
+  }
+  .radio input:checked + .radio-dot { border-color: var(--orange); }
+  .radio input:checked + .radio-dot::after { transform: scale(1); }
+  .radio input:disabled + .radio-dot { opacity: 0.5; }
+  .radio.disabled { color: rgba(40,40,40,0.4); cursor: not-allowed; }
+
+  /* ---------- CARDS ---------- */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  /* Card 1: Article (light) */
+  .card-article {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(72,72,72,0.08);
+    display: flex;
+    flex-direction: column;
+  }
+  .card-article-img {
+    height: 220px;
+    background:
+      repeating-linear-gradient(
+        135deg,
+        var(--sand) 0 14px,
+        #d8c2a3 14px 28px
+      );
+    display: flex;
+    align-items: flex-end;
+    padding: 16px;
+  }
+  .card-article-tag {
+    background: var(--orange);
+    color: var(--nearwhite);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 6px 12px;
+    border-radius: 40px;
+  }
+  .card-article-body { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+  .card-article-eyebrow {
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: var(--orange);
+    margin: 0 0 10px;
+  }
+  .card-article-title {
+    font-weight: 500;
+    font-size: 24px;
+    letter-spacing: -0.03em;
+    margin: 0 0 12px;
+    line-height: 1.15;
+    color: var(--offblack);
+  }
+  .card-article-desc {
+    font-size: 14px;
+    color: var(--gunmetal);
+    margin: 0 0 20px;
+    line-height: 1.45;
+    letter-spacing: -0.02em;
+    flex: 1;
+  }
+  .card-article-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--gunmetal);
+    border-top: 1px solid rgba(72,72,72,0.1);
+    padding-top: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  /* Card 2: Feature (sand) */
+  .card-feature {
+    background: var(--sand);
+    border-radius: 20px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 480px;
+  }
+  .card-feature-num {
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 13px;
+    color: var(--offblack);
+    opacity: 0.5;
+    letter-spacing: 0.02em;
+  }
+  .card-feature-title {
+    font-weight: 700;
+    font-size: 36px;
+    letter-spacing: -0.03em;
+    color: var(--orange);
+    margin: 0;
+    line-height: 1.05;
+  }
+  .card-feature-desc {
+    font-size: 15px;
+    color: var(--offblack);
+    line-height: 1.5;
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+  .card-feature-spacer { flex: 1; }
+  .card-feature-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--orange);
+    text-decoration: none;
+    letter-spacing: -0.03em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-feature-link::after {
+    content: "→";
+    transition: transform 0.18s ease;
+  }
+  .card-feature-link:hover::after { transform: translateX(4px); }
+
+  /* Card 3: Stat / Dark */
+  .card-stat {
+    background: var(--offblack);
+    border-radius: 20px;
+    padding: 32px;
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 480px;
+  }
+  .card-stat-eyebrow {
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: var(--orange);
+    margin: 0;
+  }
+  .card-stat-num {
+    font-weight: 400;
+    font-size: 96px;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    margin: 8px 0 0;
+    color: var(--white);
+  }
+  .card-stat-unit {
+    font-size: 32px;
+    color: var(--gunmetal);
+    margin-left: 6px;
+  }
+  .card-stat-label {
+    font-weight: 500;
+    font-size: 18px;
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+  .card-stat-spacer { flex: 1; }
+  .card-stat-foot {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.5;
+    letter-spacing: -0.02em;
+    margin: 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 16px;
+  }
+
+  /* ---------- NAV STATES PREVIEW ---------- */
+  .nav-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .nav-mock {
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(72,72,72,0.08);
+    background: white;
+  }
+  .nav-mock-label {
+    padding: 14px 20px;
+    background: white;
+    font-weight: 500;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: var(--orange);
+    border-bottom: 1px solid rgba(72,72,72,0.08);
+  }
+  .nav-mock-stage {
+    height: 280px;
+    position: relative;
+    overflow: hidden;
+  }
+  .nav-stage-closed {
+    background: var(--bg);
+  }
+  .nav-stage-closed .stage-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 60px, rgba(40,40,40,0.04) 60px 61px);
+  }
+  .nav-mock-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    background: linear-gradient(180deg, rgba(229,210,184,0.7) 0%, rgba(229,210,184,0) 93.62%);
+  }
+  .nm-brand {
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.03em;
+    color: var(--offblack);
+  }
+  .nm-brand span { color: var(--orange); }
+  .nm-links { display: flex; gap: 18px; }
+  .nm-link {
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: -0.02em;
+    color: var(--offblack);
+  }
+  .nm-cta {
+    width: 110px;
+    height: 38px;
+    border-radius: 40px;
+    background: rgba(229,210,184,0.4);
+    border: 1px solid var(--orange);
+    color: var(--orange);
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: -0.02em;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+  }
+
+  .nav-stage-open {
+    background: var(--orange);
+    padding: 28px 24px;
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+  }
+  .nav-stage-open-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+  .nav-stage-open .nm-brand { color: var(--white); }
+  .nav-stage-open .nm-brand span { color: var(--white); }
+  .open-close {
+    position: relative;
+    width: 24px;
+    height: 24px;
+  }
+  .open-close::before, .open-close::after {
+    content: "";
+    position: absolute;
+    width: 24px;
+    height: 2px;
+    background: #FAFAFA;
+    top: 50%;
+    left: 0;
+  }
+  .open-close::before { transform: rotate(45deg); }
+  .open-close::after { transform: rotate(-45deg); }
+  .open-cta {
+    width: 110px;
+    height: 38px;
+    border-radius: 40px;
+    background: rgba(229,210,184,0.4);
+    border: 1px solid var(--white);
+    color: var(--white);
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: -0.02em;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+  }
+  .open-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+  .open-menu-item {
+    font-weight: 500;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    opacity: 0.7;
+  }
+  .open-menu-item.active { opacity: 1; }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    margin-top: 80px;
+    background: var(--offblack);
+    color: var(--white);
+  }
+  .footer-top {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 60px 50px 40px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 40px;
+  }
+  .footer-brand {
+    font-weight: 700;
+    font-size: 32px;
+    letter-spacing: -0.03em;
+    color: var(--gunmetal);
+  }
+  .footer-brand span { color: var(--gunmetal); }
+  .footer-col h4 {
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin: 0 0 16px;
+    font-weight: 500;
+  }
+  .footer-col a {
+    display: block;
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    font-size: 14px;
+    letter-spacing: -0.04em;
+    margin-bottom: 10px;
+  }
+  .footer-col a:hover { color: var(--white); }
+  .footer-enquiry {
+    font-size: 16px;
+    color: var(--white);
+    letter-spacing: -0.04em;
+    margin: 16px 0 0;
+  }
+  .footer-enquiry a {
+    color: var(--orange);
+    text-decoration: underline;
+  }
+  .footer-bottom {
+    background: #2A2A2A;
+    border-top: 1px solid #000;
+    padding: 20px 50px;
+  }
+  .footer-bottom-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 300;
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+  }
+
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .page-title { font-size: 56px; }
+    .block-head { grid-template-columns: 1fr; gap: 12px; }
+    .color-grid { grid-template-columns: repeat(2, 1fr); }
+    .btn-grid, .form-grid, .cards-grid, .nav-preview { grid-template-columns: 1fr; }
+    .type-row { grid-template-columns: 1fr; gap: 8px; }
+    .type-spec { text-align: left; }
+    .footer-top { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============ NAVIGATION ============ -->
+  <nav class="site-nav">
+    <div class="nav-brand">Spring<span>CC</span></div>
+    <div class="nav-links">
+      <a class="nav-link">Work</a>
+      <a class="nav-link">About</a>
+      <a class="nav-link">Journal</a>
+      <a class="nav-link">Careers</a>
+      <button id="menuOpenBtn" class="ham-btn" aria-label="Åbn menu" style="margin-left:8px;">
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============ MENU OVERLAY (open nav state) ============ -->
+  <div id="menuOverlay" class="menu-overlay" aria-hidden="true">
+    <div class="menu-overlay-top">
+      <div class="menu-overlay-brand">Spring<span>CC</span></div>
+      <div class="menu-overlay-actions">
+        <button class="menu-overlay-cta">Get in touch</button>
+        <button id="menuCloseBtn" class="ham-btn is-open" aria-label="Luk menu">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+      </div>
+    </div>
+    <nav class="menu-overlay-list">
+      <a class="menu-overlay-item">Work</a>
+      <a class="menu-overlay-item">About</a>
+      <a class="menu-overlay-item">Journal</a>
+      <a class="menu-overlay-item">Careers</a>
+      <a class="menu-overlay-item">Contact</a>
+    </nav>
+  </div>
+
+  <!-- ============ PAGE HEADER ============ -->
+  <header class="page-header">
+    <p class="eyebrow">Brand System / v1.0</p>
+    <h1 class="page-title">Component Library.</h1>
+    <p class="page-sub">En oversigt over de primære UI-elementer i Spring CC's brandsystem — typografi, farver, knapper, formularer, cards og navigation. Brug denne side som reference når du bygger nye flader.</p>
+  </header>
+
+  <!-- ============ TYPOGRAPHY ============ -->
+  <section class="block">
+    <div class="block-head">
+      <div>
+        <span class="index-num">01 / Foundations</span>
+        <h2>Typografi</h2>
+      </div>
+      <p>Én overskrift-stil. Stringent igennem hele sitet. Ingen variation af vægt eller størrelse på H1–H5 — kun længden og linjen ændrer sig.</p>
+    </div>
+
+    <!-- ===== Heading rule callout ===== -->
+    <div class="heading-rule">
+      <div class="heading-rule-spec">
+        <p class="heading-rule-eyebrow">Heading — altid disse settings</p>
+        <dl class="heading-rule-list">
+          <div><dt>Font</dt><dd>DM Sans</dd></div>
+          <div><dt>Weight</dt><dd>400</dd></div>
+          <div><dt>Color</dt><dd><span class="swatch-dot" style="background:#282828"></span>#282828</dd></div>
+          <div><dt>Align</dt><dd>left</dd></div>
+          <div><dt>Line</dt><dd>1</dd></div>
+          <div><dt>Tracking</dt><dd>0 px</dd></div>
+          <div><dt>Margin</dt><dd>0 0 28 0</dd></div>
+        </dl>
+        <p class="heading-rule-note">Tracking 0 gælder ALT — ikke kun overskrifter. Body, captions, eyebrows, knapper. Hele sitet.</p>
+      </div>
+      <div class="heading-rule-preview">
+        <div class="heading-row">
+          <span class="heading-row-tag">H1 · 56 px</span>
+          <div class="t-h1" style="font-weight: 400">Building thoughtful brands.</div>
+        </div>
+        <div class="heading-row">
+          <span class="heading-row-tag">H2 · 40 px</span>
+          <div class="t-h2" style="font-weight: 400">A studio for ambitious work</div>
+        </div>
+        <div class="heading-row">
+          <span class="heading-row-tag">H3 · 28 px</span>
+          <div class="t-h3" style="font-weight: 400">Det starter med samtalen</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Body / supporting type ===== -->
+    <div class="type-row">
+      <div class="type-meta"><strong>Eyebrow</strong>Labels &amp; tags</div>
+      <div class="t-h6" style="color: var(--orange)">Eyebrow / Project label</div>
+      <div class="type-spec">DM Sans 600 · 11–13 px<br/>UPPERCASE</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Nav / Button</strong>Interactive labels</div>
+      <div style="font-family: 'DM Sans', system-ui, sans-serif; font-weight: 500; font-size: 16px; color: var(--offblack);">Læs artikel · Gem til senere</div>
+      <div class="type-spec">DM Sans 500 · 13–16 px</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Body</strong>Brødtekst</div>
+      <div class="t-body">Spring CC arbejder med brands der vil mere end at se godt ud — vi designer systemer der gør det nemmere at træffe gode beslutninger over tid, både på tværs af kanaler og af et team i bevægelse.</div>
+      <div class="type-spec">DM Sans 400 · 16 px<br/>line-height 145%</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Caption</strong>Meta &amp; hjælpetekst</div>
+      <div class="t-caption">3 t · Reuters Marketing Wire · Score 87</div>
+      <div class="type-spec">DM Sans 400 · 13 px<br/>secondary tone</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Mono</strong>Tal, koder, hex</div>
+      <div class="t-mono">#282828 · 56 px · 01 / Foundations</div>
+      <div class="type-spec">SF Mono · 13 px<br/>numeriske &amp; tekniske felter</div>
+    </div>
+  </section>
+
+  <!-- ============ COLOR PALETTE ============ -->
+  <section class="block">
+    <div class="block-head">
+      <div>
+        <span class="index-num">02 / Foundations</span>
+        <h2>Farvepalette</h2>
+      </div>
+      <p>Ti tokens i systemet. Vivid Orange er den eneste rene accent — alt andet er rolige, dæmpede toner. Brug Teal kun til store CTA-sektioner.</p>
+    </div>
+
+    <div class="color-grid">
+      <div class="swatch">
+        <div class="swatch-color light-token" data-token="01" style="background:#FF3700;"></div>
+        <div class="swatch-meta">
+          <p class="swatch-name">Vivid Orange</p>
+          <p class="swatch-hex">#FF3700</p>
+          <p class="swatch-use">Primær accent — CTA, links, eyebrow</p>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color light-token" data-token="02" style="background:#7FB9C2;"></div>
+        <div class="swatch-meta">
+          <p class="swatch-name">Muted Teal</p>
+          <p class="swatch-hex">#7FB9C2</p>
+          <p class="swatch-use">Sekundær — store CTA-sektioner</p>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color dark-token" data-token="03" style="background:#282828;"></div>
+        <div class="swatch-meta">
+          <p class="swatch-name">Off Black</p>
+          <p class="swatch-hex">#282828</p>
+          <p class="swatch-use">Mørke sektioner, brødtekst</p>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color dark-token" data-token="04" style="background:#484848;"></div>
+        <div class="swatch-meta">
+          <p class="swatch-name">Gunmetal Grey</p>
+          <p class="swatch-hex">#484848</p>
+          <p class="swatch-use">Footer-logo, subtile elementer</p>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color light-token" data-token="05" style="background:#B9B9B1;"></div>
+        <div class="swatch-meta">
+          <p class="swatch-name">Neutral</p>
+          <p class="swatch-hex">#B9B9B1</p>
+          <p class="swatch-use">Pre-footer, borders, muted bg</p>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color light-token" data-token="06" style="background:#F4F4F4;"></div>
+        <div class="swatch-meta">
+          <p class="swatch-name">Background</p>
+          <p class="swatch-hex">#F4F4F4</p>
+          <p class="swatch-use">Primær side-baggrund</p>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color light-token" data-token="07" style="background:#E6D1B8;"></div>
+        <div class="swatch-meta">
+          <p class="swatch-name">Sand</p>
+          <p class="swatch-hex">#E6D1B8</p>
+          <p class="swatch-use">Feature-sektioner, nav-gradient</p>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color light-token" data-token="08" style="background:#E5D2B8;"></div>
+        <div class="swatch-meta">
+          <p class="swatch-name">Beige</p>
+          <p class="swatch-hex">#E5D2B8</p>
+          <p class="swatch-use">Menu items på orange overlay</p>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color light-token" data-token="09" style="background:#F8F6F0;"></div>
+        <div class="swatch-meta">
+          <p class="swatch-name">Near White</p>
+          <p class="swatch-hex">#F8F6F0</p>
+          <p class="swatch-use">Tekst på orange, sek. knap-tekst</p>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color light-token" data-token="10" style="background:#F1F1F1; border: 1px solid rgba(72,72,72,0.08);"></div>
+        <div class="swatch-meta">
+          <p class="swatch-name">White</p>
+          <p class="swatch-hex">#F1F1F1</p>
+          <p class="swatch-use">Glassmorphism tekst &amp; borders</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BUTTONS ============ -->
+  <section class="block">
+    <div class="block-head">
+      <div>
+        <span class="index-num">03 / Components</span>
+        <h2>Knapvarianter</h2>
+      </div>
+      <p>Fire varianter dækker alle scenarier. Glassmorphism er forbeholdt sekundær (nav CTA-mønsteret); primær er solid orange.</p>
+    </div>
+
+    <div class="btn-grid">
+      <div class="btn-cell">
+        <p class="btn-cell-title">Primær</p>
+        <p class="btn-cell-desc">Solid orange. Til den vigtigste handling på en flade — én pr. skærm.</p>
+        <div class="btn-row">
+          <button class="btn btn-primary btn-lg">Get in touch</button>
+          <button class="btn btn-primary btn-sm">Læs mere</button>
+        </div>
+      </div>
+
+      <div class="btn-cell">
+        <p class="btn-cell-title">Sekundær (glassmorphism)</p>
+        <p class="btn-cell-desc">Til navigation og sekundære CTAs på sand- eller orange-baggrund. Hover skifter til solid orange.</p>
+        <div class="btn-row">
+          <button class="btn btn-secondary btn-lg">Get in touch</button>
+          <button class="btn btn-secondary btn-sm">Se case</button>
+        </div>
+      </div>
+
+      <div class="btn-cell">
+        <p class="btn-cell-title">Ghost</p>
+        <p class="btn-cell-desc">Outline only. Til tertiære valg eller når flere knapper står ved siden af hinanden.</p>
+        <div class="btn-row">
+          <button class="btn btn-ghost btn-lg">Annullér</button>
+          <button class="btn btn-ghost btn-sm">Læs vilkår</button>
+        </div>
+      </div>
+
+      <div class="btn-cell">
+        <p class="btn-cell-title">Disabled</p>
+        <p class="btn-cell-desc">Neutral grå med dæmpet tekst. Reagerer ikke på hover.</p>
+        <div class="btn-row">
+          <button class="btn btn-disabled btn-lg" disabled>Send formular</button>
+          <button class="btn btn-disabled btn-sm" disabled>Næste</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px;">
+      <div class="btn-cell btn-cell--dark">
+        <p class="btn-cell-title">På mørk baggrund</p>
+        <p class="btn-cell-desc">Primær og ghost har inverterede states på Off Black-sektioner.</p>
+        <div class="btn-row">
+          <button class="btn btn-primary btn-lg">Get in touch</button>
+          <button class="btn btn-ghost btn-lg">Annullér</button>
+          <button class="btn btn-disabled btn-lg" disabled>Disabled</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FORMS ============ -->
+  <section class="block">
+    <div class="block-head">
+      <div>
+        <span class="index-num">04 / Components</span>
+        <h2>Form-elementer</h2>
+      </div>
+      <p>Inputs er pill-shaped med 40px radius — matcher knapper og CTA. Orange fokus-state. Labels er eyebrow-style, ikke caption.</p>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-cell">
+        <h3>Inputs &amp; Select</h3>
+        <div class="field">
+          <label class="field-label">Fulde navn</label>
+          <input class="input" type="text" value="Lærke Holm" />
+        </div>
+        <div class="field">
+          <label class="field-label">Email</label>
+          <input class="input" type="email" placeholder="dig@firma.dk" />
+          <p class="field-help">Vi svarer typisk inden for 24 timer.</p>
+        </div>
+        <div class="field">
+          <label class="field-label">Telefon</label>
+          <input class="input input--error" type="tel" value="2345" />
+          <p class="field-error">Indtast et gyldigt 8-cifret nummer.</p>
+        </div>
+        <div class="field">
+          <label class="field-label">Projekttype</label>
+          <select class="select">
+            <option>Brand identity</option>
+            <option>Website</option>
+            <option>Kampagne</option>
+            <option>Andet</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-cell">
+        <h3>Checkbox &amp; Radio</h3>
+
+        <div class="field">
+          <label class="field-label">Interesseområder</label>
+          <div class="check-row">
+            <label class="check"><input type="checkbox" checked /><span class="check-box"></span>Strategi &amp; positionering</label>
+            <label class="check"><input type="checkbox" checked /><span class="check-box"></span>Visual identity</label>
+            <label class="check"><input type="checkbox" /><span class="check-box"></span>Digital design &amp; web</label>
+            <label class="check"><input type="checkbox" /><span class="check-box"></span>Motion &amp; film</label>
+            <label class="check disabled"><input type="checkbox" disabled /><span class="check-box"></span>Print (kommer snart)</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Budget-ramme</label>
+          <div class="radio-row">
+            <label class="radio"><input type="radio" name="budget" /><span class="radio-dot"></span>Under 100k DKK</label>
+            <label class="radio"><input type="radio" name="budget" checked /><span class="radio-dot"></span>100k – 250k DKK</label>
+            <label class="radio"><input type="radio" name="budget" /><span class="radio-dot"></span>250k – 500k DKK</label>
+            <label class="radio"><input type="radio" name="budget" /><span class="radio-dot"></span>500k+ DKK</label>
+            <label class="radio disabled"><input type="radio" name="budget" disabled /><span class="radio-dot"></span>Ikke fastlagt</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CARDS ============ -->
+  <section class="block">
+    <div class="block-head">
+      <div>
+        <span class="index-num">05 / Components</span>
+        <h2>Cards</h2>
+      </div>
+      <p>Tre varianter med forskellig visuel vægt. Article (lys), Feature (sand) og Stat (mørk) — vælg efter kontekst, ikke ud fra hvad der ser pænest ud i isolation.</p>
+    </div>
+
+    <div class="cards-grid">
+
+      <!-- Card 1: Article -->
+      <article class="card-article">
+        <div class="card-article-img">
+          <span class="card-article-tag">Case study</span>
+        </div>
+        <div class="card-article-body">
+          <p class="card-article-eyebrow">AI &amp; Marketing</p>
+          <h3 class="card-article-title">Hvordan vi byggede Nordens første AI-drevne brand-engine</h3>
+          <p class="card-article-desc">Et seks måneders samarbejde med en dansk skaleringsvirksomhed om at automatisere kanal-tilpasning uden at miste tone-of-voice.</p>
+          <div class="card-article-meta">
+            <span>Apr 30, 2026</span>
+            <span>8 min read</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2: Feature -->
+      <article class="card-feature">
+        <span class="card-feature-num">— 02</span>
+        <h3 class="card-feature-title">Strategi før æstetik.</h3>
+        <p class="card-feature-desc">Vi starter altid med spørgsmålet om hvorfor — og hvad det er, brandet skal gøre nemmere. Æstetikken følger i kølvandet og bliver en konsekvens af klarhed, ikke en præsentation.</p>
+        <div class="card-feature-spacer"></div>
+        <button type="button" class="card-feature-link">Læs vores tilgang</button>
+      </article>
+
+      <!-- Card 3: Stat / Dark -->
+      <article class="card-stat">
+        <p class="card-stat-eyebrow">Impact / 2025</p>
+        <p class="card-stat-num">42<span class="card-stat-unit">%</span></p>
+        <p class="card-stat-label">gennemsnitlig løft i conversion på re-launchede sites.</p>
+        <div class="card-stat-spacer"></div>
+        <p class="card-stat-foot">Baseret på 14 client-engagements målt over 90 dage post-launch. Metoden er beskrevet i vores Journal.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ NAVIGATION STATES ============ -->
+  <section class="block">
+    <div class="block-head">
+      <div>
+        <span class="index-num">06 / Components</span>
+        <h2>Navigation-bar</h2>
+      </div>
+      <p>To states. Closed bruger sand-gradient og glassmorphism CTA. Open er fuld-skærms orange overlay med lukke-ikon og store menu-items.</p>
+    </div>
+
+    <div class="nav-preview">
+      <div class="nav-mock">
+        <div class="nav-mock-label">Closed state</div>
+        <div class="nav-mock-stage nav-stage-closed">
+          <div class="stage-bg"></div>
+          <div class="nav-mock-bar">
+            <div class="nm-brand">Spring<span>CC</span></div>
+            <div style="display:flex; gap:18px; align-items:center;">
+              <div class="nm-links">
+                <span class="nm-link">Work</span>
+                <span class="nm-link">About</span>
+                <span class="nm-link">Journal</span>
+              </div>
+              <button class="nm-cta">Get in touch</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-mock">
+        <div class="nav-mock-label">Open state · overlay</div>
+        <div class="nav-mock-stage nav-stage-open">
+          <div class="nav-stage-open-top">
+            <div class="nm-brand">Spring<span>CC</span></div>
+            <div style="display:flex; gap:18px; align-items:center;">
+              <button class="open-cta">Get in touch</button>
+              <div class="open-close"></div>
+            </div>
+          </div>
+          <div class="open-menu">
+            <div class="open-menu-item active">Work</div>
+            <div class="open-menu-item">About</div>
+            <div class="open-menu-item">Journal</div>
+            <div class="open-menu-item">Careers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hamburger states showcase -->
+    <div style="margin-top: 32px;">
+      <h3 style="font-size: 16px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 16px; color: var(--offblack);">Hamburger / close icon — 4 states</h3>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+
+        <div class="ham-frame">
+          <button class="ham-btn" aria-label="Closed default" tabindex="-1">
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          </button>
+          <span class="ham-frame-label">Closed · default</span>
+        </div>
+
+        <div class="ham-frame">
+          <button class="ham-btn" aria-label="Closed hover" tabindex="-1"
+                  onmouseenter="event.currentTarget.classList.add('force-hover')"
+                  style="--force:1;">
+            <span class="bar" style="top:9px;"></span>
+            <span class="bar"></span>
+            <span class="bar" style="top:28px;"></span>
+          </button>
+          <span class="ham-frame-label">Closed · hover</span>
+        </div>
+
+        <div class="ham-frame">
+          <button class="ham-btn is-open" aria-label="Opened default" tabindex="-1">
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          </button>
+          <span class="ham-frame-label">Opened · default</span>
+        </div>
+
+        <div class="ham-frame">
+          <button class="ham-btn is-open" aria-label="Opened hover" tabindex="-1">
+            <span class="bar" style="width:40px; left:0;"></span>
+            <span class="bar"></span>
+            <span class="bar" style="width:40px; left:0;"></span>
+          </button>
+          <span class="ham-frame-label">Opened · hover</span>
+        </div>
+
+      </div>
+      <p style="font-size: 13px; color: var(--gunmetal); margin: 16px 0 0; letter-spacing: -0.02em; line-height: 1.5;">
+        Klik på hamburger-knappen øverst til højre for at se den fulde menu-overlay i action.
+      </p>
+    </div>
+  </section>
+  <footer>
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">Spring<span>CC</span></div>
+        <p class="footer-enquiry">General enquiries — <a href="mailto:hello@spring-cc.com">hello@spring-cc.com</a></p>
+      </div>
+      <div class="footer-col">
+        <h4>Studio</h4>
+        <a>Work</a>
+        <a>About</a>
+        <a>Journal</a>
+        <a>Careers</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a>Vesterbrogade 24</a>
+        <a>1620 København V</a>
+        <a>+45 70 20 30 40</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-bottom-inner">
+        <span>© 2026 Spring CC ApS — All rights reserved.</span>
+        <span>Component Library v1.0</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ TWEAKS THEME LAYER ============ -->
+  <style>
+    /* Mood palettes — applied via data-mood on <html> */
+    html[data-mood="editorial"] {
+      --bg: #F0E7D8;
+      --sand: #E0C9A8;
+      --beige: #DCC298;
+      --neutral: #C7B89B;
+      --offblack: #2A241B;
+      --gunmetal: #5C5343;
+      --orange: #C8421C;
+      --teal: #8FA88A;
+      --white: #FAF5EA;
+      --nearwhite: #FBF7EE;
+    }
+    html[data-mood="studio"] {
+      /* default — uses tokens declared on :root above */
+    }
+    html[data-mood="neon"] {
+      --bg: #0E0E0E;
+      --sand: #1A1A1A;
+      --beige: #1F1F1F;
+      --neutral: #3A3A38;
+      --offblack: #F1F1F1;
+      --gunmetal: #B9B9B1;
+      --orange: #FF4A1A;
+      --teal: #00D9C0;
+      --white: #FAFAFA;
+      --nearwhite: #FFFFFF;
+    }
+
+    /* Geometry — radius scale via custom prop, retargets all rounded elements */
+    :root { --radius-scale: 1; }
+    .btn, .nav-cta, .nm-cta, .open-cta { border-radius: calc(60px * var(--radius-scale) + 0px) !important; }
+    .input, .select { border-radius: calc(40px * var(--radius-scale) + 0px) !important; }
+    .swatch, .btn-cell, .form-cell, .card-article, .card-feature, .card-stat, .nav-mock {
+      border-radius: calc(20px * var(--radius-scale) + 0px) !important;
+    }
+    .card-article-tag { border-radius: calc(40px * var(--radius-scale)) !important; }
+    .check-box { border-radius: calc(6px * var(--radius-scale) + 0px) !important; }
+
+    /* Type voice — applied via data-voice on <html> */
+    html[data-voice="soft"] {
+      --hd-family: "Fraunces", Georgia, serif;
+      --hd-weight: 400;
+      --hd-tracking: -0.01em;
+      --hd-transform: none;
+      --hd-style: normal;
+      --eyebrow-transform: none;
+      --eyebrow-weight: 500;
+    }
+    html[data-voice="sharp"] {
+      --hd-family: "DM Sans", system-ui, sans-serif;
+      --hd-weight: 700;
+      --hd-tracking: -0.04em;
+      --hd-transform: none;
+      --hd-style: normal;
+      --eyebrow-transform: uppercase;
+      --eyebrow-weight: 600;
+    }
+    html[data-voice="brutal"] {
+      --hd-family: "JetBrains Mono", ui-monospace, monospace;
+      --hd-weight: 700;
+      --hd-tracking: -0.02em;
+      --hd-transform: uppercase;
+      --hd-style: normal;
+      --eyebrow-transform: uppercase;
+      --eyebrow-weight: 700;
+    }
+    html[data-voice] .card-feature-title,
+    html[data-voice] .card-article-title,
+    html[data-voice] .card-stat-num {
+      font-family: var(--hd-family);
+      font-weight: var(--hd-weight);
+      letter-spacing: var(--hd-tracking);
+      text-transform: var(--hd-transform);
+      font-style: var(--hd-style);
+    }
+    html[data-voice] .eyebrow,
+    html[data-voice] .card-article-eyebrow,
+    html[data-voice] .card-stat-eyebrow,
+    html[data-voice] .field-label,
+    html[data-voice] .index-num {
+      text-transform: var(--eyebrow-transform);
+      font-weight: var(--eyebrow-weight);
+    }
+
+    /* H2 typography panel — section headings follow stringent heading rule */
+    .block-head h2 {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-weight: 400;
+      font-size: 40px;
+      line-height: 1;
+      color: #282828;
+      margin: 0;
+    }
+  </style>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+
+  <div id="tweaks-root"></div>
+  <script type="text/babel">
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "mood": "editorial",
+      "voice": "sharp",
+      "geometry": 1
+    }/*EDITMODE-END*/;
+
+    function ComponentLibTweaks() {
+      const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+      // Apply mood + voice as data attrs on <html>
+      React.useEffect(() => {
+        document.documentElement.dataset.mood = t.mood;
+      }, [t.mood]);
+      React.useEffect(() => {
+        document.documentElement.dataset.voice = t.voice;
+      }, [t.voice]);
+      // Apply geometry scale
+      React.useEffect(() => {
+        document.documentElement.style.setProperty('--radius-scale', t.geometry);
+      }, [t.geometry]);
+
+      return (
+        <TweaksPanel title="Tweaks">
+          <TweakSection label="Mood">
+            <TweakRadio
+              label="Palette"
+              value={t.mood}
+              options={['editorial', 'studio', 'neon']}
+              onChange={(v) => setTweak('mood', v)}
+            />
+          </TweakSection>
+
+          <TweakSection label="Type voice">
+            <TweakRadio
+              label="Personality"
+              value={t.voice}
+              options={['soft', 'sharp', 'brutal']}
+              onChange={(v) => setTweak('voice', v)}
+            />
+          </TweakSection>
+
+          <TweakSection label="Geometry">
+            <TweakSlider
+              label="Roundness"
+              value={t.geometry}
+              min={0} max={1.4} step={0.05}
+              unit="×"
+              onChange={(v) => setTweak('geometry', v)}
+            />
+          </TweakSection>
+        </TweaksPanel>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<ComponentLibTweaks />);
+  </script>
+
+  <script>
+    // Menu overlay toggle
+    (function() {
+      const openBtn = document.getElementById('menuOpenBtn');
+      const closeBtn = document.getElementById('menuCloseBtn');
+      const overlay = document.getElementById('menuOverlay');
+      if (!openBtn || !overlay) return;
+
+      function setOpen(isOpen) {
+        overlay.classList.toggle('is-open', isOpen);
+        overlay.setAttribute('aria-hidden', !isOpen);
+        document.body.classList.toggle('menu-open', isOpen);
+        openBtn.classList.toggle('is-open', isOpen);
+      }
+      openBtn.addEventListener('click', () => setOpen(!overlay.classList.contains('is-open')));
+      if (closeBtn) closeBtn.addEventListener('click', () => setOpen(false));
+      overlay.querySelectorAll('.menu-overlay-item').forEach(a => {
+        a.addEventListener('click', () => setOpen(false));
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.classList.contains('is-open')) setOpen(false);
+      });
+    })();
+  </script>
+
+</body>
+</html>
