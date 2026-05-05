@@ -55,13 +55,13 @@ links_to:
 **Filer:** `app/page.tsx`
 **Begrundelse:** Brugeren skal nemt skelne mellem nyt og tidligere indhold. Aktuelle uge øverst, ældre nedenfor.
 **Konsekvenser:** Feed-render-logik ændres. Artikler grupperes efter `scraped_at`-uge. To sektioner med headers.
-**Commit:** pending — fase 1
+**Commit:** 6523b48
 
 ### 2026-05-05 — Sprint 5 #2: Feed begrænset til ≤30 dage gamle artikler
 **Filer:** `app/page.tsx`
 **Begrundelse:** Feedet skal vise relevant nyt indhold, ikke historisk arkiv. 30 dages vindue baseret på `scraped_at`.
 **Konsekvenser:** Query-filter på artikel-fetch. Artikler ældre end 30 dage er ikke længere synlige i feed (men findes stadig i DB).
-**Commit:** pending — fase 1
+**Commit:** 6523b48
 
 ### 2026-05-05 — Reorganisering af 01_docs/ struktur
 **Filer:** `01_docs/Documentation/` (ny), `01_docs/Archive/` (ny), `01_docs/Plan/`, `01_docs/Ressourcer/` (flyttet ud), `01_docs/Export_import/` (slettet)
@@ -124,9 +124,9 @@ links_to:
 > Bugfixes, tweaks, små rettelser uden strukturpåvirkning.
 
 ### 2026-05-05 — Sprint 5 #1: Rename "Ugentligt digest" → "Digest"
-**Filer:** `app/page.tsx`, `app/login/page.tsx`, `app/saved/page.tsx`, `app/digest/page.tsx`, `app/components/GenerateDigestButton.tsx` (hvis nævnt)
+**Filer:** `app/page.tsx`, `app/saved/page.tsx`, `app/digest/page.tsx`
 **Beskrivelse:** Forenklet navngivning. "Ugentligt" var overflødigt — det forventes at være ugentligt.
-**Commit:** pending — fase 1
+**Commit:** f96cdee
 
 ### 2026-05-04 — Removed event handlers from Server Component
 **Filer:** `app/digest/page.tsx`, `app/globals.css`
