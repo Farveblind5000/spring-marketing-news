@@ -77,7 +77,7 @@ Knappen "Send to Claude Code" i Claude Design sender HTML/CSS til Claude Code.
 | Vue | "Vue 3 Composition API, TypeScript, Tailwind" |
 
 ### Workflow
-Se [[Ressourcer/Claude Design Reference]] for handoff-detaljer og prompt-skabelon.
+Se [[Claude Design Reference]] for handoff-detaljer og prompt-skabelon.
 
 ---
 

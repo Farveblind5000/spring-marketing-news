@@ -46,7 +46,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# obsidian volatile filer (vault i docs/)
-docs/.obsidian/workspace.json
-docs/.obsidian/workspace-mobile.json
-docs/.obsidian/cache
+# obsidian volatile filer (vault i 01_docs/)
+01_docs/.obsidian/workspace.json
+01_docs/.obsidian/workspace-mobile.json
+01_docs/.obsidian/cache
+
+# stray .obsidian fra root (skal ikke trackes)
+/.obsidian/

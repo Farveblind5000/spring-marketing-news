@@ -24,7 +24,7 @@ links_to:
 > **AI & Marketing Intelligence Feed**
 > Web scraper · LLM-sammenfatning · Supabase · Next.js
 
-→ **[[Plan/Feed Site Plan]]** — step-by-step plan, design sessions, sprints, DB schema
+→ **[[Feed Site Plan]]** — step-by-step plan, design sessions, sprints, DB schema
 
 ---
 
@@ -32,8 +32,8 @@ links_to:
 
 | Fil | Indhold |
 |-----|---------|
-| [[Ressourcer/Spring CC Brand Kit]] | Komplet brand prompt klar til brug |
-| [[Ressourcer/Claude Design Reference]] | Alle learnings — prompt-struktur, iteration, export, handoff |
-| [[Ressourcer/Prompt Bibliotek]] | Genbrugelige design prompts |
-| [[Ressourcer/Integrationer]] | Figma, Canva, HTML, Claude Code workflows |
-| [[Ressourcer/Vidensdatabase]] | Genveje, kendte begrænsninger, egne fund |
+| [[Spring CC Brand Kit]] | Komplet brand prompt klar til brug |
+| [[Claude Design Reference]] | Alle learnings — prompt-struktur, iteration, export, handoff |
+| [[Prompt Bibliotek]] | Genbrugelige design prompts |
+| [[Integrationer]] | Figma, Canva, HTML, Claude Code workflows |
+| [[Vidensdatabase]] | Genveje, kendte begrænsninger, egne fund |

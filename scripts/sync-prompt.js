@@ -9,8 +9,8 @@ const path = require('path')
 
 // ── Konfiguration ─────────────────────────────────────────────
 
-// Prompt-noten ligger nu i projektets eget docs/-mappe (konsolideret 2026-05-05)
-const OBSIDIAN_NOTE = path.join(__dirname, '..', 'docs', 'Prompts', 'Digest System Prompt.md')
+// Prompt-noten ligger i projektets 01_docs/-mappe (konsolideret 2026-05-05)
+const OBSIDIAN_NOTE = path.join(__dirname, '..', '01_docs', 'Prompts', 'Digest System Prompt.md')
 
 const ENV_FILE = path.join(__dirname, '..', '.env.local')
 

@@ -34,14 +34,14 @@ lib/supabase/
 supabase/functions/
   scrape-articles/index.ts    — RSS scraper + Gemini enrichment
   generate-digest/index.ts    — Legacy digest (erstattet af /api/generate-digest)
-docs/                         — Obsidian vault (kontrol-center, planer, prompts)
+01_docs/                         — Obsidian vault (kontrol-center, planer, prompts)
   CLAUDE_RULES.md             — Regler AI skal følge
   CHANGELOG.md                — Append-only ændringslog
   Plan/                       — Roadmap, tech canvas
   Prompts/                    — Digest System Prompt (synkes til Supabase)
   Ressourcer/                 — Brand kit, integrationer, vidensdatabase
 scripts/
-  sync-prompt.js              — Sync docs/Prompts/* → Supabase settings
+  sync-prompt.js              — Sync 01_docs/Prompts/* → Supabase settings
 ```
 
 ---
@@ -62,10 +62,10 @@ digests      — Ugentlige briefinger (user_id NULL = global digest)
 - `supabase/functions/` er **Deno** — brug `npm:` prefix til imports, IKKE Node.js syntax
 - `supabase/functions/` er **ekskluderet** fra `tsconfig.json` (Next.js checker dem ikke)
 - Edge Functions deployes med: `.\supabase-cli\supabase.exe functions deploy <navn> --project-ref mdevyscqhpaogvsblfyp`
-- **`docs/`** er kontrol-center (Obsidian vault) — læs `docs/CLAUDE_RULES.md` FØRST før ændringer
-- **`docs/Noter.md`** må ALDRIG ændres (`claude_write_access: false`)
-- Strukturelle ændringer i `docs/` (sletninger, omdøbninger, nye mapper) kræver eksplicit "JA" i chat
-- Efter ændringer i `docs/`: append entry til `docs/CHANGELOG.md`
+- **`01_docs/`** er kontrol-center (Obsidian vault) — læs `01_docs/CLAUDE_RULES.md` FØRST før ændringer
+- **`01_docs/Noter.md`** må ALDRIG ændres (`claude_write_access: false`)
+- Strukturelle ændringer i `01_docs/` (sletninger, omdøbninger, nye mapper) kræver eksplicit "JA" i chat
+- Efter ændringer i `01_docs/`: append entry til `01_docs/CHANGELOG.md`
 - Brand-tokens: `--orange: #FF3700`, `--offblack: #1A1A1A`, `--gunmetal: #484848`, `--bg: #F4F4F4`
 - Font: DM Sans (Google Fonts)
 
