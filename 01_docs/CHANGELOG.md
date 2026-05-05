@@ -21,6 +21,18 @@ links_to:
 
 > Strukturændringer, nye features, schema, breaking changes.
 
+### 2026-05-05 — Reorganisering af 01_docs/ struktur
+**Filer:** `01_docs/Documentation/` (ny), `01_docs/Archive/` (ny), `01_docs/Plan/`, `01_docs/Ressourcer/` (flyttet ud), `01_docs/Export_import/` (slettet)
+**Begrundelse:** Fire forskellige typer indhold (planlægning, dokumentation, historisk, generel viden) lå blandet sammen. Risiko for forvirring og dårlig opdaging. Feed Site Plan og Roadmap overlappede.
+**Konsekvenser:**
+- `Plan/` indeholder kun forward-looking docs (Roadmap + Tech_stack)
+- `Documentation/` (NEW) — stabil reference (DB-schema, File-structure, Component-Library)
+- `Archive/` (NEW) — frozen historik (Feed Site Plan, Original-Mockups)
+- `Ressourcer/` flyttet til separat vault `Obsidian_claude/Claude_design_ref/` (krydsprojekt-viden)
+- `Claude design.md` flyttet samme sted (er hub for general Claude Design knowledge)
+- `Export_import/` slettet (Component Library flyttet til Documentation/)
+**Commit:** pending
+
 ### 2026-05-05 — Mappe-rename: docs/ → 01_docs/
 **Filer:** `01_docs/` (renamed fra `docs/`), `scripts/sync-prompt.js`, `CLAUDE.md`, `.gitignore`, `.claude/skills/changelog.md`, `01_docs/CLAUDE_RULES.md`
 **Begrundelse:** Numerisk præfiks `01_` placerer mappen øverst i Obsidian fil-view. Ren UX-præference fra bruger.

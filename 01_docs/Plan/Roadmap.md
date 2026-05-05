@@ -5,8 +5,10 @@ protection: locked
 claude_write_access: true
 updated: 2026-05-05
 links_to:
-  - "Plan/Feed Site Plan"
   - "../CHANGELOG"
+  - "../Documentation/DB-schema"
+  - "../Documentation/File-structure"
+  - "../Archive/Feed Site Plan"
 ---
 
 # 🗺️ Spring Marketing News — Roadmap
