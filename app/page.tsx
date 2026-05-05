@@ -7,18 +7,56 @@ function formatDate(iso: string | null): string {
   return new Date(iso).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })
 }
 
+// Start på indeværende ISO-uge (mandag 00:00 lokal tid)
+function startOfCurrentWeek(): Date {
+  const now = new Date()
+  const day = now.getDay() || 7  // Søndag = 7
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - day + 1)
+  monday.setHours(0, 0, 0, 0)
+  return monday
+}
+
+interface ArticleRow {
+  id: string
+  title: string
+  url: string
+  topic: 'ai' | 'marketing' | 'both' | null
+  published_at: string | null
+  scraped_at: string | null
+  summary: string | null
+  relevance_score: number | null
+  read_time_min: number | null
+  sources: { name: string } | null
+}
+
 export default async function FeedPage() {
   const supabase = await createClient()
 
-  // Bruger (til at vide hvilke artikler der er gemt)
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Hent artikler + kildenavn, nyeste først
-  const { data: articles } = await supabase
+  // 30-dages vindue baseret på scraped_at
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const { data: articlesRaw } = await supabase
     .from('articles')
-    .select('id, title, url, topic, published_at, summary, relevance_score, read_time_min, sources(name)')
+    .select('id, title, url, topic, published_at, scraped_at, summary, relevance_score, read_time_min, sources(name)')
+    .gte('scraped_at', thirtyDaysAgo.toISOString())
     .order('scraped_at', { ascending: false })
-    .limit(50)
+    .limit(100)
+
+  const articles = (articlesRaw ?? []) as unknown as ArticleRow[]
+
+  // Split i "denne uge" og "ældre uger" baseret på scraped_at
+  const weekStart = startOfCurrentWeek()
+  const thisWeek: ArticleRow[] = []
+  const olderWeeks: ArticleRow[] = []
+  for (const a of articles) {
+    const scraped = a.scraped_at ? new Date(a.scraped_at) : null
+    if (scraped && scraped >= weekStart) thisWeek.push(a)
+    else olderWeeks.push(a)
+  }
 
   // Brugerens gemte artikel-IDs
   let savedIds = new Set<string>()
@@ -29,11 +67,90 @@ export default async function FeedPage() {
     if (saves) savedIds = new Set(saves.map(s => s.article_id))
   }
 
-  // Antal aktive kilder til LIVE-indikatoren
   const { count: sourceCount } = await supabase
     .from('sources')
     .select('*', { count: 'exact', head: true })
     .eq('active', true)
+
+  // Render-helper for én artikel-række
+  const renderArticle = (article: ArticleRow, globalIndex: number, isFirst: boolean) => {
+    const sourceName = article.sources?.name ?? ''
+    const topic = article.topic as 'ai' | 'marketing' | 'both'
+
+    return (
+      <div
+        key={article.id}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '64px 1fr auto',
+          gap: 28,
+          padding: '24px 0',
+          borderTop: `1px solid rgba(72,72,72,${isFirst ? '0.18' : '0.12'})`,
+          alignItems: 'start',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: 'ui-monospace, "SF Mono", monospace',
+            fontSize: 13,
+            color: 'var(--orange)',
+            paddingTop: 4,
+          }}
+        >
+          — {String(globalIndex + 1).padStart(2, '0')}
+        </div>
+
+        <a
+          href={article.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group"
+          style={{ textDecoration: 'none', color: 'inherit' }}
+        >
+          <div className="flex items-center gap-2 mb-2" style={{ fontSize: 12, color: 'var(--gunmetal)' }}>
+            <span
+              className={`eyebrow px-2 py-[3px] rounded-[40px] border text-[11px] badge-${topic}`}
+              style={{ borderColor: 'currentColor' }}
+            >
+              {topic === 'ai' ? 'AI' : 'Marketing'}
+            </span>
+            <span>{sourceName}</span>
+            <span
+              className="rounded-full opacity-50"
+              style={{ width: 3, height: 3, background: 'var(--gunmetal)', display: 'inline-block' }}
+            />
+            <span>
+              {formatDate(article.published_at)} · {article.read_time_min ?? 1} min
+            </span>
+          </div>
+          <h2
+            className="group-hover:text-[var(--orange)] transition-colors"
+            style={{ fontWeight: 400, fontSize: 22, lineHeight: 1, margin: '0 0 12px', color: 'var(--offblack)' }}
+          >
+            {article.title}
+          </h2>
+          {article.summary && (
+            <p style={{ fontSize: 14, color: 'var(--gunmetal)', lineHeight: 1.5, margin: 0 }}>
+              {article.summary}
+            </p>
+          )}
+        </a>
+
+        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+          {article.relevance_score && (
+            <span style={{ fontWeight: 500, fontSize: 18, color: 'var(--offblack)', fontVariantNumeric: 'tabular-nums' }}>
+              {Number(article.relevance_score).toFixed(1)}
+              <small style={{ color: 'var(--gunmetal)', fontWeight: 400, fontSize: 12 }}> /10</small>
+            </span>
+          )}
+          <SaveButton
+            articleId={article.id}
+            initialSaved={savedIds.has(article.id)}
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -119,92 +236,46 @@ export default async function FeedPage() {
         </div>
 
         {/* ARTICLE LIST */}
-        {!articles?.length ? (
-          <p style={{ color: 'var(--gunmetal)', fontSize: 16 }}>Ingen artikler endnu — kør scraperen.</p>
+        {!articles.length ? (
+          <p style={{ color: 'var(--gunmetal)', fontSize: 16 }}>
+            Ingen artikler de seneste 30 dage.
+          </p>
         ) : (
-          <div className="flex flex-col">
-            {articles.map((article, i) => {
-              const sourceName = (article.sources as unknown as { name: string } | null)?.name ?? ''
-              const topic = article.topic as 'ai' | 'marketing' | 'both'
-
-              return (
-                <div
-                  key={article.id}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '64px 1fr auto',
-                    gap: 28,
-                    padding: '24px 0',
-                    borderTop: `1px solid rgba(72,72,72,${i === 0 ? '0.18' : '0.12'})`,
-                    alignItems: 'start',
-                  }}
-                >
-                  {/* Index */}
-                  <div
-                    style={{
-                      fontFamily: 'ui-monospace, "SF Mono", monospace',
-                      fontSize: 13,
-                      color: 'var(--orange)',
-                      paddingTop: 4,
-                    }}
-                  >
-                    — {String(i + 1).padStart(2, '0')}
-                  </div>
-
-                  {/* Main */}
-                  <a
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    <div className="flex items-center gap-2 mb-2" style={{ fontSize: 12, color: 'var(--gunmetal)' }}>
-                      <span
-                        className={`eyebrow px-2 py-[3px] rounded-[40px] border text-[11px] badge-${topic}`}
-                        style={{ borderColor: 'currentColor' }}
-                      >
-                        {topic === 'ai' ? 'AI' : 'Marketing'}
-                      </span>
-                      <span>{sourceName}</span>
-                      <span
-                        className="rounded-full opacity-50"
-                        style={{ width: 3, height: 3, background: 'var(--gunmetal)', display: 'inline-block' }}
-                      />
-                      <span>
-                        {formatDate(article.published_at)} · {article.read_time_min ?? 1} min
-                      </span>
-                    </div>
-                    <h2
-                      className="group-hover:text-[var(--orange)] transition-colors"
-                      style={{ fontWeight: 400, fontSize: 22, lineHeight: 1, margin: '0 0 12px', color: 'var(--offblack)' }}
-                    >
-                      {article.title}
-                    </h2>
-                    {article.summary && (
-                      <p style={{ fontSize: 14, color: 'var(--gunmetal)', lineHeight: 1.5, margin: 0 }}>
-                        {article.summary}
-                      </p>
-                    )}
-                  </a>
-
-                  {/* Score + Gem */}
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    {article.relevance_score && (
-                      <span style={{ fontWeight: 500, fontSize: 18, color: 'var(--offblack)', fontVariantNumeric: 'tabular-nums' }}>
-                        {Number(article.relevance_score).toFixed(1)}
-                        <small style={{ color: 'var(--gunmetal)', fontWeight: 400, fontSize: 12 }}> /10</small>
-                      </span>
-                    )}
-                    <SaveButton
-                      articleId={article.id}
-                      initialSaved={savedIds.has(article.id)}
-                    />
-                  </div>
+          <>
+            {/* DENNE UGE */}
+            <section style={{ marginBottom: thisWeek.length && olderWeeks.length ? 56 : 0 }}>
+              <div className="flex items-center gap-3" style={{ marginBottom: 8 }}>
+                <p className="eyebrow m-0">Denne uge</p>
+                <span style={{ fontSize: 12, color: 'var(--gunmetal)' }}>
+                  {thisWeek.length} {thisWeek.length === 1 ? 'artikel' : 'artikler'}
+                </span>
+              </div>
+              {thisWeek.length === 0 ? (
+                <p style={{ fontSize: 14, color: 'var(--gunmetal)', padding: '24px 0', borderTop: '1px solid rgba(72,72,72,0.18)' }}>
+                  Ingen nye artikler denne uge endnu.
+                </p>
+              ) : (
+                <div className="flex flex-col">
+                  {thisWeek.map((article, i) => renderArticle(article, i, i === 0))}
                 </div>
-              )
-            })}
-          </div>
+              )}
+            </section>
+
+            {/* ÆLDRE UGER */}
+            {olderWeeks.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3" style={{ marginBottom: 8 }}>
+                  <p className="eyebrow m-0" style={{ color: 'var(--gunmetal)' }}>Ældre uger</p>
+                  <span style={{ fontSize: 12, color: 'var(--gunmetal)' }}>
+                    {olderWeeks.length} {olderWeeks.length === 1 ? 'artikel' : 'artikler'} · sidste 30 dage
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  {olderWeeks.map((article, i) => renderArticle(article, thisWeek.length + i, i === 0))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </main>
 
