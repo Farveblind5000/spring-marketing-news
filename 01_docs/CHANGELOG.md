@@ -43,13 +43,13 @@ links_to:
 **Filer:** `app/components/SendToDigestButton.tsx` (ny), `app/page.tsx`, `app/saved/page.tsx`
 **Begrundelse:** Bruger skal kunne markere artikler eksplicit til digest, separat fra "gem til senere".
 **Konsekvenser:** Ny UI-knap ved siden af bookmark. Skriver til `user_digest_queue`-tabellen.
-**Commit:** pending — fase 2
+**Commit:** d3a84fc
 
 ### 2026-05-05 — Sprint 5 #4: Datamodel — user_digest_queue tabel
-**Filer:** Supabase SQL (ny tabel), TypeScript types
+**Filer:** Supabase SQL (manuel via SQL Editor), `01_docs/Documentation/Migrations.md`
 **Begrundelse:** "Send til digest" og "gem til senere" er konceptuelt forskellige handlinger. Separat tabel undgår sammenblanding.
 **Konsekvenser:** Schema-tilføjelse: `user_digest_queue (id, user_id, article_id, added_at)`. RLS-policy. Eksisterende `user_saves` uberørt.
-**Commit:** pending — fase 2
+**Commit:** d3a84fc (kode + migration-doc) · SQL kørt manuelt 2026-05-05
 
 ### 2026-05-05 — Sprint 5 #3: Feed split i "Denne uge" + "Ældre uger"
 **Filer:** `app/page.tsx`
