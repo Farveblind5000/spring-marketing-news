@@ -25,13 +25,13 @@ links_to:
 **Filer:** `01_docs/` (renamed fra `docs/`), `scripts/sync-prompt.js`, `CLAUDE.md`, `.gitignore`, `.claude/skills/changelog.md`, `01_docs/CLAUDE_RULES.md`
 **Begrundelse:** Numerisk præfiks `01_` placerer mappen øverst i Obsidian fil-view. Ren UX-præference fra bruger.
 **Konsekvenser:** Alle path-referencer opdateret. `sync-prompt.js` peger nu på `01_docs/Prompts/`. Test af sync verificerer at alt virker.
-**Commit:** pending
+**Commit:** 3e269c8
 
 ### 2026-05-05 — Changelog-system med /changelog skill
 **Filer:** `.claude/skills/changelog.md`, `docs/Plan/Roadmap.md`, `docs/CHANGELOG.md`, `docs/CLAUDE_RULES.md`
 **Begrundelse:** Manglende formel proces for ændringer på tværs af AI-sessioner. Risiko for utilsigtede sletninger og tab af kontekst.
 **Konsekvenser:** Alle fremtidige ændringer går gennem `/changelog` flowet med kategori-baseret routing til Roadmap eller Changelog.
-**Commit:** pending
+**Commit:** 3e269c8
 
 ### 2026-05-05 — Konsolidering af kontrol-center til docs/
 **Filer:** `docs/`, `scripts/sync-prompt.js`, `CLAUDE.md`, `.gitignore`
