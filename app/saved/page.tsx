@@ -69,7 +69,7 @@ export default async function SavedPage() {
             className="text-[16px] font-medium transition-colors hover:text-[var(--orange)]"
             style={{ color: 'var(--offblack)' }}
           >
-            Ugentligt digest
+            Digest
           </Link>
         </div>
 

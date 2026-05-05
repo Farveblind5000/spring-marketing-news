@@ -83,7 +83,7 @@ export default async function DigestPage() {
             Gemte artikler
           </Link>
           <Link href="/digest" className="text-[16px] font-medium" style={{ color: 'var(--orange)' }}>
-            Ugentligt digest
+            Digest
           </Link>
         </div>
 
@@ -98,7 +98,7 @@ export default async function DigestPage() {
         <header style={{ marginBottom: 48 }}>
           <p className="eyebrow m-0 mb-4">Uge {currentWeek}, {currentYear}</p>
           <h1 style={{ fontWeight: 400, fontSize: 56, lineHeight: 1, color: 'var(--offblack)', margin: 0 }}>
-            Ugentligt digest.
+            Digest.
           </h1>
         </header>
 
