@@ -46,7 +46,7 @@ export default function GenerateDigestButton({ savedCount }: Props) {
             Genererer...
           </span>
         ) : (
-          `Generer digest af ${savedCount} gemte artikler`
+          `Generer digest af ${savedCount} ${savedCount === 1 ? 'valgt artikel' : 'valgte artikler'}`
         )}
       </button>
       {error && (

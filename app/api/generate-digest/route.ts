@@ -19,40 +19,25 @@ async function fetchPromptTemplate(supabase: Awaited<ReturnType<typeof createCli
 
   if (data?.content) return data.content
 
-  // Fallback: plain text KEY:-format
   return `Du er redaktør på et dansk AI & marketing intelligence-feed. Uge {{week}}, {{year}}.
 
-Brugeren har selv gemt og valgt disse {{article_count}} artikler (fra {{source_count}} kilder):
+Brugeren har valgt {{article_count}} artikler til digest:
 {{article_list}}
 
-Svar med præcis dette format. Behold KEY:-præfikserne. Erstat kun [] med dit indhold:
+For hver artikel — brug dette format med N=1,2,...,{{article_count}}:
 
-INTRO: [2 sætninger om hvad brugeren har fokuseret på denne uge]
+INTRO: [tema]
 
-TREND1_TITLE: [kort tendenstitel]
-TREND1_BODY: [2 sætninger med konkrete eksempler]
-
-TREND2_TITLE: [kort tendenstitel]
-TREND2_BODY: [2 sætninger med konkrete eksempler]
-
-TREND3_TITLE: [kort tendenstitel]
-TREND3_BODY: [2 sætninger med konkrete eksempler]
-
-HIGHLIGHT1_TITLE: [eksakt artikkeltitel fra listen]
-HIGHLIGHT1_SOURCE: [kilde]
-HIGHLIGHT1_WHY: [1 sætning om hvorfor den er vigtig]
-
-HIGHLIGHT2_TITLE: [eksakt artikkeltitel fra listen]
-HIGHLIGHT2_SOURCE: [kilde]
-HIGHLIGHT2_WHY: [1 sætning om hvorfor den er vigtig]
-
-HIGHLIGHT3_TITLE: [eksakt artikkeltitel fra listen]
-HIGHLIGHT3_SOURCE: [kilde]
-HIGHLIGHT3_WHY: [1 sætning om hvorfor den er vigtig]`
+ART1_TITLE: [titel]
+ART1_SOURCE: [kilde]
+ART1_SUMMARY: [4-6 sætninger]
+ART1_TAKEAWAY1: [indsigt 1]
+ART1_TAKEAWAY2: [indsigt 2]
+ART1_TAKEAWAY3: [indsigt 3]`
 }
 
-// Parser Geminis KEY:-format til DigestContent
-function parseKeyFormat(text: string) {
+// Parse Geminis KEY:-format med variabelt antal artikler
+function parseKeyFormat(text: string, expectedCount: number) {
   const fields: Record<string, string> = {}
   const lines = text.split('\n')
   let currentKey = ''
@@ -71,19 +56,26 @@ function parseKeyFormat(text: string) {
   }
   if (currentKey) fields[currentKey] = currentParts.join(' ').trim()
 
+  const articles: { title: string; source: string; summary: string; takeaways: string[]; url: string | null }[] = []
+  for (let i = 1; i <= expectedCount; i++) {
+    const title = fields[`ART${i}_TITLE`] ?? ''
+    if (!title) continue
+    articles.push({
+      title,
+      source: fields[`ART${i}_SOURCE`] ?? '',
+      summary: fields[`ART${i}_SUMMARY`] ?? '',
+      takeaways: [
+        fields[`ART${i}_TAKEAWAY1`] ?? '',
+        fields[`ART${i}_TAKEAWAY2`] ?? '',
+        fields[`ART${i}_TAKEAWAY3`] ?? '',
+      ].filter(Boolean),
+      url: null,
+    })
+  }
+
   return {
     intro: fields['INTRO'] ?? '',
-    trends: [1, 2, 3]
-      .map(i => ({ title: fields[`TREND${i}_TITLE`] ?? '', body: fields[`TREND${i}_BODY`] ?? '' }))
-      .filter(t => t.title),
-    highlights: [1, 2, 3]
-      .map(i => ({
-        title: fields[`HIGHLIGHT${i}_TITLE`] ?? '',
-        source: fields[`HIGHLIGHT${i}_SOURCE`] ?? '',
-        why: fields[`HIGHLIGHT${i}_WHY`] ?? '',
-        url: null as string | null,
-      }))
-      .filter(h => h.title),
+    articles,
   }
 }
 
@@ -95,8 +87,9 @@ export async function POST() {
     return NextResponse.json({ error: 'Ikke logget ind' }, { status: 401 })
   }
 
-  const { data: saves } = await supabase
-    .from('user_saves')
+  // Hent brugerens VALGTE artikler fra digest queue (ikke user_saves)
+  const { data: queueRows } = await supabase
+    .from('user_digest_queue')
     .select(`
       articles (
         id, title, url, summary, topic,
@@ -104,9 +97,10 @@ export async function POST() {
       )
     `)
     .eq('user_id', user.id)
+    .order('added_at', { ascending: true })
 
-  if (!saves?.length) {
-    return NextResponse.json({ error: 'Ingen gemte artikler' }, { status: 400 })
+  if (!queueRows?.length) {
+    return NextResponse.json({ error: 'Ingen artikler valgt til digest' }, { status: 400 })
   }
 
   type ArticleRow = {
@@ -118,8 +112,8 @@ export async function POST() {
     sources: { name: string } | null
   }
 
-  const articles: ArticleRow[] = saves
-    .map(s => s.articles as unknown as ArticleRow)
+  const articles: ArticleRow[] = queueRows
+    .map(r => r.articles as unknown as ArticleRow)
     .filter((a): a is ArticleRow => !!a?.title)
 
   if (!articles.length) {
@@ -132,18 +126,14 @@ export async function POST() {
 
   const uniqueSources = new Set(articles.map(a => a.sources?.name).filter(Boolean))
 
+  // Artikellisten med fuld summary (giver Gemini nok kontekst til udvidet opsummering)
   const articleList = articles
     .map((a, i) => {
       const src = a.sources?.name ?? ''
-      const firstBullet = (a.summary ?? '')
-        .split('\n')
-        .find(l => l.trim().startsWith('•'))
-        ?.replace('•', '')
-        .trim()
-        .slice(0, 120) ?? ''
-      return `${i + 1}. [${a.topic?.toUpperCase() ?? 'GENEREL'}] ${a.title} — ${src}${firstBullet ? `\n   ${firstBullet}` : ''}`
+      const summary = (a.summary ?? '').slice(0, 600)
+      return `${i + 1}. [${a.topic?.toUpperCase() ?? 'GENEREL'}] ${a.title} — ${src}${summary ? `\n${summary}` : ''}`
     })
-    .join('\n')
+    .join('\n\n')
 
   const template = await fetchPromptTemplate(supabase)
   const prompt = template
@@ -159,6 +149,9 @@ export async function POST() {
   }
 
   try {
+    // Skaler maxOutputTokens med antal artikler (~600 tokens per artikel-block)
+    const maxOutputTokens = Math.min(8000, 1500 + articles.length * 600)
+
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
@@ -166,7 +159,7 @@ export async function POST() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.3, maxOutputTokens: 2000 },
+          generationConfig: { temperature: 0.3, maxOutputTokens },
         }),
       }
     )
@@ -181,23 +174,26 @@ export async function POST() {
       }, { status: 500 })
     }
 
-    // Parser plain text KEY:-format → DigestContent
-    const parsed = parseKeyFormat(raw)
+    const parsed = parseKeyFormat(raw, articles.length)
 
-    if (!parsed.intro) {
-      return NextResponse.json({ error: 'Kunne ikke parse Gemini-svar', raw: raw.slice(0, 300) }, { status: 500 })
+    if (!parsed.intro || !parsed.articles.length) {
+      return NextResponse.json({
+        error: 'Kunne ikke parse Gemini-svar',
+        raw: raw.slice(0, 500),
+        parsed_preview: { intro_len: parsed.intro.length, article_count: parsed.articles.length }
+      }, { status: 500 })
     }
 
-    // Berig highlights med URL via titel-match
-    parsed.highlights = parsed.highlights.map(h => {
-      const match = articles.find(a =>
-        a.title?.toLowerCase().includes(h.title?.toLowerCase().slice(0, 30)) ||
-        h.title?.toLowerCase().includes(a.title?.toLowerCase().slice(0, 30))
+    // Berig artikler med URL via titel-match
+    parsed.articles = parsed.articles.map(a => {
+      const match = articles.find(orig =>
+        orig.title?.toLowerCase().includes(a.title?.toLowerCase().slice(0, 30)) ||
+        a.title?.toLowerCase().includes(orig.title?.toLowerCase().slice(0, 30))
       )
-      return { ...h, url: match?.url ?? null }
+      return { ...a, url: match?.url ?? null }
     })
 
-    // Slet eksisterende og gem nyt digest
+    // Slet eksisterende digest for denne uge for denne bruger og gem nyt
     await supabase.from('digests').delete()
       .eq('user_id', user.id)
       .eq('week_number', currentWeek)

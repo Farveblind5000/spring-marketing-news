@@ -11,16 +11,23 @@ function weekNumber(date: Date): number {
   return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
 }
 
+interface DigestArticle {
+  title: string
+  source: string
+  url?: string | null
+  summary: string
+  takeaways: string[]
+}
+
 interface DigestContent {
   intro: string
-  trends: { title: string; body: string }[]
-  highlights: { title: string; source: string; url?: string; why: string }[]
+  articles: DigestArticle[]
 }
 
 function parseDigestContent(raw: string): DigestContent | null {
   try {
     const parsed = JSON.parse(raw)
-    if (parsed.intro && Array.isArray(parsed.trends) && Array.isArray(parsed.highlights)) {
+    if (parsed.intro && Array.isArray(parsed.articles) && parsed.articles.length > 0) {
       return parsed as DigestContent
     }
     return null
@@ -48,14 +55,15 @@ export default async function DigestPage() {
     .eq('year', currentYear)
     .maybeSingle()
 
-  // Antal gemte artikler (til knap og status)
-  const { count: savedCount } = await supabase
-    .from('user_saves')
+  // Antal valgte artikler i digest queue (driver knappen)
+  const { count: queuedCount } = await supabase
+    .from('user_digest_queue')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
 
   const structured = digest ? parseDigestContent(digest.content) : null
-  const totalSaved = savedCount ?? 0
+  const totalQueued = queuedCount ?? 0
+  const isLegacyDigest = digest && !structured  // gammelt format i DB
 
   return (
     <>
@@ -103,96 +111,86 @@ export default async function DigestPage() {
         </header>
 
         {digest && structured ? (
-          /* ── Digest klar ── */
+          /* ── Digest klar (nyt format) ── */
           <div>
             {/* Meta-chip */}
             <div className="flex items-center gap-3" style={{ marginBottom: 40 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--orange)', display: 'inline-block', flexShrink: 0 }} />
               <p className="eyebrow m-0">
-                {digest.article_count ?? 0} gemte artikler · {digest.source_count ?? 0} kilder
+                {structured.articles.length} valgte {structured.articles.length === 1 ? 'artikel' : 'artikler'} · {digest.source_count ?? 0} kilder
               </p>
             </div>
 
             {/* Intro */}
-            <p style={{ fontSize: 18, lineHeight: 1.75, color: 'var(--offblack)', margin: '0 0 56px', fontWeight: 400 }}>
+            <p style={{ fontSize: 18, lineHeight: 1.75, color: 'var(--offblack)', margin: '0 0 48px', fontWeight: 400 }}>
               {structured.intro}
             </p>
 
-            <div style={{ borderTop: '1px solid rgba(72,72,72,0.12)', marginBottom: 48 }} />
+            <div style={{ borderTop: '1px solid rgba(72,72,72,0.12)', marginBottom: 40 }} />
 
-            {/* Top 3 tendenser */}
-            <section style={{ marginBottom: 56 }}>
-              <p className="eyebrow m-0" style={{ marginBottom: 28 }}>Top 3 tendenser</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                {structured.trends.map((trend, i) => (
-                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '32px 1fr', gap: '0 20px', alignItems: 'start' }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: '50%',
-                      background: 'var(--orange)', color: 'var(--white)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 13, fontWeight: 700, flexShrink: 0, marginTop: 2,
-                    }}>
-                      {i + 1}
-                    </div>
-                    <div>
-                      <p style={{ fontWeight: 600, fontSize: 16, color: 'var(--offblack)', margin: '0 0 6px' }}>
-                        {trend.title}
-                      </p>
-                      <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--gunmetal)', margin: 0 }}>
-                        {trend.body}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <div style={{ borderTop: '1px solid rgba(72,72,72,0.12)', marginBottom: 48 }} />
-
-            {/* Ikke gå glip af */}
-            <section style={{ marginBottom: 48 }}>
-              <p className="eyebrow m-0" style={{ marginBottom: 28 }}>Ikke gå glip af</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {structured.highlights.map((h, i) => (
-                  <div key={i} style={{
+            {/* Artikler — én kort pr. valgt artikel */}
+            <section style={{ marginBottom: 40 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+                {structured.articles.map((art, i) => (
+                  <article key={i} style={{
                     background: 'var(--white)',
                     border: '1px solid rgba(72,72,72,0.12)',
-                    borderRadius: 12,
-                    padding: '18px 22px',
-                    transition: 'border-color 0.15s',
+                    borderRadius: 16,
+                    padding: '28px 32px',
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
-                      <span style={{ color: 'var(--orange)', fontWeight: 700, fontSize: 16, lineHeight: '22px', flexShrink: 0 }}>→</span>
-                      <div style={{ flex: 1 }}>
-                        {h.url ? (
-                          <a
-                            href={h.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="digest-highlight-link"
-                            style={{
-                              fontWeight: 600,
-                              fontSize: 15,
-                              color: 'var(--offblack)',
-                              textDecoration: 'none',
-                              lineHeight: '22px',
-                              display: 'inline',
-                            }}
-                          >
-                            {h.title}
-                          </a>
-                        ) : (
-                          <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--offblack)', lineHeight: '22px' }}>
-                            {h.title}
-                          </span>
-                        )}
-                        <span style={{ fontWeight: 400, color: 'var(--gunmetal)', marginLeft: 8, fontSize: 15 }}>— {h.source}</span>
-                      </div>
+                    {/* Titel + kilde */}
+                    <div style={{ marginBottom: 16 }}>
+                      <p className="eyebrow m-0" style={{ marginBottom: 6, fontSize: 11 }}>
+                        — {String(i + 1).padStart(2, '0')} · {art.source}
+                      </p>
+                      {art.url ? (
+                        <a
+                          href={art.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="digest-highlight-link"
+                          style={{
+                            fontWeight: 500,
+                            fontSize: 22,
+                            color: 'var(--offblack)',
+                            textDecoration: 'none',
+                            lineHeight: 1.25,
+                            display: 'inline-block',
+                          }}
+                        >
+                          {art.title}
+                        </a>
+                      ) : (
+                        <h2 style={{ fontWeight: 500, fontSize: 22, color: 'var(--offblack)', lineHeight: 1.25, margin: 0 }}>
+                          {art.title}
+                        </h2>
+                      )}
                     </div>
-                    <p style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--gunmetal)', margin: '0 0 0 26px' }}>
-                      {h.why}
+
+                    {/* Udvidet summary */}
+                    <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--offblack)', margin: '0 0 20px' }}>
+                      {art.summary}
                     </p>
-                  </div>
+
+                    {/* Takeaways */}
+                    {art.takeaways.length > 0 && (
+                      <div style={{
+                        background: 'rgba(255,55,0,0.04)',
+                        borderLeft: '2px solid var(--orange)',
+                        padding: '14px 18px',
+                        borderRadius: '0 8px 8px 0',
+                      }}>
+                        <p className="eyebrow m-0" style={{ marginBottom: 8, fontSize: 11 }}>Hovedpointer</p>
+                        <ul style={{ margin: 0, paddingLeft: 18, listStyle: 'disc' }}>
+                          {art.takeaways.map((t, j) => (
+                            <li key={j} style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--gunmetal)', marginBottom: 4 }}>
+                              {t}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </article>
                 ))}
               </div>
             </section>
@@ -203,16 +201,35 @@ export default async function DigestPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
               <p style={{ fontSize: 13, color: 'var(--gunmetal)', margin: 0 }}>
                 Genereret {new Date(digest.created_at).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long' })}
-                {' · '}baseret på dine gemte artikler
+                {' · '}baseret på dine valgte artikler
               </p>
-              {totalSaved > 0 && (
-                <GenerateDigestButton savedCount={totalSaved} />
+              {totalQueued > 0 && (
+                <GenerateDigestButton savedCount={totalQueued} />
               )}
             </div>
           </div>
 
-        ) : totalSaved > 0 ? (
-          /* ── Har gemte artikler men ingen digest endnu ── */
+        ) : isLegacyDigest && totalQueued > 0 ? (
+          /* ── Gammelt format ligger i DB — bed om regenerering ── */
+          <div style={{
+            background: 'var(--white)',
+            border: '1px solid rgba(72,72,72,0.12)',
+            borderRadius: 16,
+            padding: '64px 48px',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>🔄</div>
+            <h2 style={{ fontWeight: 400, fontSize: 24, color: 'var(--offblack)', margin: '0 0 12px' }}>
+              Nyt digest-format tilgængeligt
+            </h2>
+            <p style={{ color: 'var(--gunmetal)', fontSize: 15, margin: '0 0 32px', lineHeight: 1.6 }}>
+              Klik genererer et opdateret digest baseret på dine {totalQueued} valgte {totalQueued === 1 ? 'artikel' : 'artikler'} med udvidet opsummering.
+            </p>
+            <GenerateDigestButton savedCount={totalQueued} />
+          </div>
+
+        ) : totalQueued > 0 ? (
+          /* ── Har valgte artikler men intet digest ── */
           <div style={{
             background: 'var(--white)',
             border: '1px solid rgba(72,72,72,0.12)',
@@ -225,13 +242,13 @@ export default async function DigestPage() {
               Klar til at lave dit digest
             </h2>
             <p style={{ color: 'var(--gunmetal)', fontSize: 15, margin: '0 0 32px', lineHeight: 1.6 }}>
-              Du har {totalSaved} gemte {totalSaved === 1 ? 'artikel' : 'artikler'}. Generer et personligt overblik over hvad du har læst.
+              Du har valgt {totalQueued} {totalQueued === 1 ? 'artikel' : 'artikler'}. Generer en udvidet opsummering med hovedpointer.
             </p>
-            <GenerateDigestButton savedCount={totalSaved} />
+            <GenerateDigestButton savedCount={totalQueued} />
           </div>
 
         ) : (
-          /* ── Ingen gemte artikler endnu ── */
+          /* ── Ingen valgte artikler ── */
           <div style={{
             background: 'var(--white)',
             border: '1px solid rgba(72,72,72,0.12)',
@@ -239,15 +256,15 @@ export default async function DigestPage() {
             padding: '64px 48px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>🔖</div>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>⭐</div>
             <h2 style={{ fontWeight: 400, fontSize: 24, color: 'var(--offblack)', margin: '0 0 12px' }}>
-              Ingen gemte artikler endnu
+              Ingen artikler valgt endnu
             </h2>
             <p style={{ color: 'var(--gunmetal)', fontSize: 15, margin: '0 0 32px', lineHeight: 1.6 }}>
-              Gem artikler fra feedet du finder interessante — så laver vi et personligt digest baseret på dem.
+              Gå til feedet og klik stjernen ⭐ ved siden af bogmærket på artikler du vil have med i dit digest.
             </p>
             <Link href="/">
-              <button className="btn-primary px-6 py-3 text-[16px]">Læs dagens feed</button>
+              <button className="btn-primary px-6 py-3 text-[16px]">Gå til feed</button>
             </Link>
           </div>
         )}
