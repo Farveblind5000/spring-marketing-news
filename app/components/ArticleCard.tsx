@@ -132,14 +132,8 @@ export default function ArticleCard({
           )}
         </a>
 
-        {/* Score + actions */}
+        {/* Actions */}
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
-          {article.relevance_score && (
-            <span style={{ fontWeight: 500, fontSize: 18, color: 'var(--offblack)', fontVariantNumeric: 'tabular-nums' }}>
-              {Number(article.relevance_score).toFixed(1)}
-              <small style={{ color: 'var(--gunmetal)', fontWeight: 400, fontSize: 12 }}> /10</small>
-            </span>
-          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {/* Kort opsummering knap */}
             <button
