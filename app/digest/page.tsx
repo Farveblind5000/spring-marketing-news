@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import GenerateDigestButton from '@/app/components/GenerateDigestButton'
 import GenerateUnifiedButton from '@/app/components/GenerateUnifiedButton'
 import ExportButton from '@/app/components/ExportButton'
+import EditableUnifiedReport from '@/app/components/EditableUnifiedReport'
 
 function weekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
@@ -150,79 +151,8 @@ export default async function DigestPage() {
               {structured.intro}
             </p>
 
-            {/* SAMLET RAPPORT — øverst hvis genereret */}
-            {unified && (
-              <section style={{
-                background: 'var(--white)',
-                border: '1px solid rgba(255,55,0,0.3)',
-                borderRadius: 16,
-                padding: '32px 36px',
-                marginBottom: 56,
-              }}>
-                <p className="eyebrow m-0" style={{ marginBottom: 14, fontSize: 11 }}>
-                  📋 Samlet rapport
-                </p>
-
-                {/* Theme */}
-                <h2 style={{ fontWeight: 500, fontSize: 24, lineHeight: 1.3, color: 'var(--offblack)', margin: '0 0 24px' }}>
-                  {unified.theme}
-                </h2>
-
-                {/* Context */}
-                {unified.context && (
-                  <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--offblack)', margin: '0 0 28px' }}>
-                    {unified.context}
-                  </p>
-                )}
-
-                {/* Insights */}
-                {unified.insights.length > 0 && (
-                  <div style={{ marginBottom: 24 }}>
-                    <p className="eyebrow m-0" style={{ marginBottom: 14, fontSize: 11 }}>Hovedindsigter</p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      {unified.insights.map((insight, i) => (
-                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '24px 1fr', gap: 12, alignItems: 'start' }}>
-                          <div style={{
-                            width: 24, height: 24, borderRadius: '50%',
-                            background: 'var(--orange)', color: 'var(--white)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 2,
-                          }}>
-                            {i + 1}
-                          </div>
-                          <p style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--offblack)', margin: 0 }}>
-                            {insight}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Trends */}
-                {unified.trends && (
-                  <div style={{
-                    background: 'rgba(255,55,0,0.04)',
-                    borderLeft: '2px solid var(--orange)',
-                    padding: '14px 18px',
-                    borderRadius: '0 8px 8px 0',
-                    marginBottom: 18,
-                  }}>
-                    <p className="eyebrow m-0" style={{ marginBottom: 6, fontSize: 11 }}>Tendenser</p>
-                    <p style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--offblack)', margin: 0 }}>
-                      {unified.trends}
-                    </p>
-                  </div>
-                )}
-
-                {/* Sources */}
-                {unified.sources && (
-                  <p style={{ fontSize: 12, color: 'var(--gunmetal)', margin: '14px 0 0', fontStyle: 'italic' }}>
-                    Kilder: {unified.sources}
-                  </p>
-                )}
-              </section>
-            )}
+            {/* SAMLET RAPPORT — med edit/view modes */}
+            {unified && <EditableUnifiedReport unified={unified} />}
 
             {/* Eksport-knap — placeret under den samlede rapport */}
             {unified && (
