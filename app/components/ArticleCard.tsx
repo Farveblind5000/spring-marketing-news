@@ -21,6 +21,7 @@ interface ArticleCardProps {
   isFirst: boolean
   initialSaved: boolean
   initialQueued: boolean
+  defaultExpanded?: boolean
 }
 
 function formatDate(iso: string | null): string {
@@ -34,9 +35,10 @@ export default function ArticleCard({
   isFirst,
   initialSaved,
   initialQueued,
+  defaultExpanded = false,
 }: ArticleCardProps) {
   const [shortSummary, setShortSummary] = useState<string | null>(article.short_summary ?? null)
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(defaultExpanded && !!article.short_summary)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

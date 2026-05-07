@@ -219,6 +219,7 @@ export default async function FeedPage({
                       isFirst={i === 0}
                       initialSaved={savedIds.has(article.id)}
                       initialQueued={queuedIds.has(article.id)}
+                      defaultExpanded={filter === 'summarized'}
                     />
                   ))}
                 </div>
@@ -243,6 +244,7 @@ export default async function FeedPage({
                       isFirst={i === 0}
                       initialSaved={savedIds.has(article.id)}
                       initialQueued={queuedIds.has(article.id)}
+                      defaultExpanded={filter === 'summarized'}
                     />
                   ))}
                 </div>
