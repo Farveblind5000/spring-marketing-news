@@ -22,6 +22,7 @@ export default function GenerateDigestButton({ savedCount }: Props) {
       router.refresh()
     } catch (err) {
       setError(String(err))
+    } finally {
       setLoading(false)
     }
   }
