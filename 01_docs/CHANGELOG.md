@@ -146,6 +146,14 @@ links_to:
 **Beskrivelse:** Initial token-cap (4800 for 2 artikler) gav tom respons fra Gemini — samme issue som digest tidligere. Sænket til 3000+200*N capped 6000 (output-format er fast størrelse). Tilføjet verbose error med geminiData.error.message + candidates count.
 **Commit:** f87f4f2
 
+### 2026-05-07 — Export-fixes: artikel-kort i PDF + brand-rename + tal-bug
+**Filer:** `app/components/UnifiedReportPDF.tsx`, `app/api/export-pdf/route.tsx`, `app/api/export-email/route.tsx`
+**Beskrivelse:** Tre samlede fixes:
+1. PDF-eksport ændret fra option A (kun rapport) til B (rapport + artikel-kort) — page 2+ viser hver valgt artikel med titel/source/summary/takeaways
+2. Tal i orange cirkler manglede i PDF — fix: erstattet `<Text style={circle+text}>` med `<View style={circle}><Text>{n}</Text></View>` (View+Text pattern)
+3. Rebranding "Spring CC News Intel" → "EMILS AI NEWS" overalt: PDF header, email FROM, email subject, email HTML body, filename (emils-ai-news-uge-X-YYYY.pdf)
+**Commit:** c71fe19
+
 ### 2026-05-07 — Auto-expand summary ved filter=summarized
 **Filer:** `app/components/ArticleCard.tsx`, `app/page.tsx`
 **Beskrivelse:** UX-forbedring: når brugeren filtrerer til "⚡ Opsummerede"-tab er det ulogisk at skulle klikke på lyn-ikonet på hver artikel for at se opsummeringen. Tilføjet `defaultExpanded`-prop på ArticleCard som passes når filter==='summarized'. Ingen ekstra LLM-kald da summaries allerede er cached.
