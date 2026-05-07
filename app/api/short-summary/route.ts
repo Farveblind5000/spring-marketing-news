@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-const PROMPT_TEMPLATE = `Du er redaktør på et dansk AI & marketing intelligence-feed.
+// Fallback hvis settings-tabellen mangler row
+const FALLBACK_PROMPT = `Du er redaktør på et dansk AI & marketing intelligence-feed.
 
 Artikel: "{{title}}"
 Kilde: {{source}}
@@ -9,11 +10,20 @@ Indhold:
 {{content}}
 
 Lav 3-5 korte, konkrete overskrifter på dansk der opsummerer hovedbudskaberne.
-Hver overskrift på sin egen linje. Max 12 ord per linje.
-Ingen bullets, ingen numre, ingen indledning.
-Fokuser på det vigtigste — som en TL;DR i overskriftsform.
+Hver overskrift på sin egen linje. Max 14 ord per overskrift.
+Ingen bullets, ingen numre, ingen markdown.
 
 Returner KUN overskrifterne.`
+
+async function fetchPromptTemplate(supabase: Awaited<ReturnType<typeof createClient>>): Promise<string> {
+  const { data } = await supabase
+    .from('settings')
+    .select('content')
+    .eq('key', 'short_summary_prompt')
+    .maybeSingle()
+
+  return data?.content ?? FALLBACK_PROMPT
+}
 
 export async function POST(req: Request) {
   const supabase = await createClient()
@@ -55,10 +65,11 @@ export async function POST(req: Request) {
   }
 
   const sourceName = (article.sources as unknown as { name: string } | null)?.name ?? ''
-  const prompt = PROMPT_TEMPLATE
-    .replace('{{title}}', article.title ?? '')
-    .replace('{{source}}', sourceName)
-    .replace('{{content}}', (article.full_content ?? '').slice(0, 4000))
+  const template = await fetchPromptTemplate(supabase)
+  const prompt = template
+    .replace(/\{\{title\}\}/g, article.title ?? '')
+    .replace(/\{\{source\}\}/g, sourceName)
+    .replace(/\{\{content\}\}/g, (article.full_content ?? '').slice(0, 4000))
 
   try {
     const res = await fetch(
@@ -68,18 +79,19 @@ export async function POST(req: Request) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.2, maxOutputTokens: 400 },
+          generationConfig: { temperature: 0.2, maxOutputTokens: 800 },
         }),
       }
     )
 
     const geminiData = await res.json()
     const raw = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+    const finishReason = geminiData.candidates?.[0]?.finishReason
 
     if (!raw) {
       return NextResponse.json({
         error: 'Gemini returnerede intet indhold',
-        debug: { finishReason: geminiData.candidates?.[0]?.finishReason, geminiError: geminiData.error }
+        debug: { finishReason, geminiError: geminiData.error }
       }, { status: 500 })
     }
 
@@ -95,6 +107,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Tomt resultat efter rensning' }, { status: 500 })
     }
 
+    // Hvis output blev cuttet (MAX_TOKENS) — log warning
+    if (finishReason === 'MAX_TOKENS') {
+      console.warn(`Short summary truncated for article ${articleId} — consider raising maxOutputTokens`)
+    }
+
     // 4. Gem cache (global — alle brugere ser samme)
     const { error: updateErr } = await supabase
       .from('articles')
@@ -105,11 +122,10 @@ export async function POST(req: Request) {
       .eq('id', articleId)
 
     if (updateErr) {
-      // Cache-skrivning fejlede — returnér stadig resultatet, log fejl
       console.error('Cache write failed:', updateErr)
     }
 
-    return NextResponse.json({ summary: cleaned, cached: false })
+    return NextResponse.json({ summary: cleaned, cached: false, finishReason })
 
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

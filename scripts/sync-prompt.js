@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ══════════════════════════════════════════════════════════════
-// SPRING MARKETING NEWS — Sync Obsidian prompt → Supabase
+// SPRING MARKETING NEWS — Sync Obsidian prompts → Supabase
 // Kørsel: node scripts/sync-prompt.js
 // ══════════════════════════════════════════════════════════════
 
@@ -9,10 +9,14 @@ const path = require('path')
 
 // ── Konfiguration ─────────────────────────────────────────────
 
-// Prompt-noten ligger i projektets 01_docs/-mappe (konsolideret 2026-05-05)
-const OBSIDIAN_NOTE = path.join(__dirname, '..', '01_docs', 'Prompts', 'Digest System Prompt.md')
-
+const PROMPTS_DIR = path.join(__dirname, '..', '01_docs', 'Prompts')
 const ENV_FILE = path.join(__dirname, '..', '.env.local')
+
+// Mapping af filnavne → settings-key i Supabase
+const PROMPTS = [
+  { file: 'Digest System Prompt.md', settingsKey: 'digest_prompt' },
+  { file: 'Short Summary Prompt.md', settingsKey: 'short_summary_prompt' },
+]
 
 // ── Læs env vars ──────────────────────────────────────────────
 
@@ -24,9 +28,7 @@ function loadEnv(filePath) {
     .reduce((acc, line) => {
       const eq = line.indexOf('=')
       if (eq === -1) return acc
-      const key = line.slice(0, eq).trim()
-      const val = line.slice(eq + 1).trim()
-      acc[key] = val
+      acc[line.slice(0, eq).trim()] = line.slice(eq + 1).trim()
       return acc
     }, {})
 }
@@ -37,11 +39,10 @@ const SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error('❌ Mangler NEXT_PUBLIC_SUPABASE_URL eller SUPABASE_SERVICE_ROLE_KEY i .env.local')
-  console.error('   Tilføj: SUPABASE_SERVICE_ROLE_KEY=<din nøgle fra Supabase Dashboard → Project Settings → API>')
   process.exit(1)
 }
 
-// ── Læs og rens Obsidian note ─────────────────────────────────
+// ── Læs og rens prompt-fil ────────────────────────────────────
 
 function extractPrompt(filePath) {
   const raw = fs.readFileSync(filePath, 'utf8')
@@ -83,22 +84,28 @@ async function syncToSupabase(key, content) {
 // ── Main ──────────────────────────────────────────────────────
 
 async function main() {
-  console.log('📄 Læser Obsidian note...')
+  console.log(`📂 Synker ${PROMPTS.length} prompts fra ${PROMPTS_DIR}\n`)
 
-  if (!fs.existsSync(OBSIDIAN_NOTE)) {
-    console.error(`❌ Kan ikke finde: ${OBSIDIAN_NOTE}`)
-    process.exit(1)
+  for (const { file, settingsKey } of PROMPTS) {
+    const filePath = path.join(PROMPTS_DIR, file)
+
+    if (!fs.existsSync(filePath)) {
+      console.warn(`⚠️  Springer over: ${file} (ikke fundet)`)
+      continue
+    }
+
+    const prompt = extractPrompt(filePath)
+    const lines = prompt.split('\n').length
+    console.log(`📄 ${file}`)
+    console.log(`   → key: ${settingsKey}`)
+    console.log(`   → ${lines} linjer, ${prompt.length} tegn`)
+    console.log(`   → preview: "${prompt.slice(0, 70)}..."`)
+
+    await syncToSupabase(settingsKey, prompt)
+    console.log(`   ✅ synket\n`)
   }
 
-  const prompt = extractPrompt(OBSIDIAN_NOTE)
-  const lines = prompt.split('\n').length
-  console.log(`   ${lines} linjer, ${prompt.length} tegn`)
-  console.log(`   Preview: "${prompt.slice(0, 80)}..."`)
-
-  console.log('\n🔄 Synker til Supabase...')
-  await syncToSupabase('digest_prompt', prompt)
-
-  console.log('✅ Digest System Prompt synket til Supabase\n')
+  console.log('🎉 Alle prompts synket til Supabase')
 }
 
 main().catch(err => {
