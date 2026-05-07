@@ -149,9 +149,9 @@ export async function POST() {
   }
 
   try {
-    // Skaler maxOutputTokens med antal artikler — ekstra højt fordi Gemini 2.5 Flash
-    // bruger thinking-tokens internt (op til ~2000 tokens før visible output)
-    const maxOutputTokens = Math.min(16000, 4000 + articles.length * 800)
+    // Skaler maxOutputTokens — base 3000 til thinking-overhead + 500 per artikel
+    // Capped ved 8000 (gemini-2.5-flash output-limit)
+    const maxOutputTokens = Math.min(8000, 3000 + articles.length * 500)
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -172,9 +172,12 @@ export async function POST() {
     const raw = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
 
     if (!raw) {
+      const finishReason = geminiData.candidates?.[0]?.finishReason ?? 'ukendt'
+      const geminiErr = geminiData.error?.message ?? ''
+      const reasonText = geminiErr ? `Gemini API: ${geminiErr}` : `finishReason: ${finishReason} (tokens: ${maxOutputTokens}, ${articles.length} artikler)`
       return NextResponse.json({
-        error: 'Gemini returnerede intet indhold',
-        debug: { finishReason: geminiData.candidates?.[0]?.finishReason, geminiError: geminiData.error }
+        error: `Gemini returnerede intet indhold — ${reasonText}`,
+        debug: { finishReason, geminiError: geminiData.error, maxOutputTokens }
       }, { status: 500 })
     }
 
