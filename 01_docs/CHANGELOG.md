@@ -21,6 +21,12 @@ links_to:
 
 > Strukturændringer, nye features, schema, breaking changes.
 
+### 2026-05-07 — Sprint 5 #9: Feed-filter inkl. "kun opsummerede"
+**Filer:** `app/page.tsx`
+**Begrundelse:** Eksisterende filter-tabs (Alle/AI/Marketing) var statiske visuelle elementer uden funktion. Bruger ønsker at kunne filtrere til artikler der er blevet opsummeret af LLM (har short_summary cached).
+**Konsekvenser:** Filter-tabs bliver funktionelle Links med URL searchParams (`?filter=ai|marketing|summarized`). Server-side filtering på query. "Denne uge"/"Ældre uger" split anvendes på filtrerede resultater.
+**Commit:** pending — inden fase 4
+
 ### 2026-05-05 — Sprint 5 #8: Export til PDF + email
 **Filer:** TBD — afventer format-spec
 **Begrundelse:** Brugere skal kunne eksportere digest til PDF (visuel) og email (handlingsrettet).

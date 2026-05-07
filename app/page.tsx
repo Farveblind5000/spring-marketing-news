@@ -26,22 +26,41 @@ interface ArticleRow {
   sources: { name: string } | null
 }
 
-export default async function FeedPage() {
-  const supabase = await createClient()
+type Filter = 'alle' | 'ai' | 'marketing' | 'summarized'
 
+const VALID_FILTERS: Filter[] = ['alle', 'ai', 'marketing', 'summarized']
+
+export default async function FeedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string }>
+}) {
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  // Læs filter fra URL ?filter=ai|marketing|summarized
+  const params = await searchParams
+  const filterParam = params.filter
+  const filter: Filter = (VALID_FILTERS as string[]).includes(filterParam ?? '')
+    ? (filterParam as Filter)
+    : 'alle'
 
   // 30-dages vindue baseret på scraped_at
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  const { data: articlesRaw } = await supabase
+  let query = supabase
     .from('articles')
     .select('id, title, url, topic, published_at, scraped_at, summary, short_summary, relevance_score, read_time_min, sources(name)')
     .gte('scraped_at', thirtyDaysAgo.toISOString())
     .order('scraped_at', { ascending: false })
     .limit(100)
 
+  if (filter === 'ai') query = query.eq('topic', 'ai')
+  else if (filter === 'marketing') query = query.eq('topic', 'marketing')
+  else if (filter === 'summarized') query = query.not('short_summary', 'is', null)
+
+  const { data: articlesRaw } = await query
   const articles = (articlesRaw ?? []) as unknown as ArticleRow[]
 
   // Split i "denne uge" og "ældre uger" baseret på scraped_at
@@ -136,28 +155,45 @@ export default async function FeedPage() {
 
         {/* FILTER TABS */}
         <div
-          className="flex items-center gap-2 mb-8 pb-5"
+          className="flex items-center gap-2 mb-8 pb-5 flex-wrap"
           style={{ borderBottom: '1px solid rgba(72,72,72,0.18)' }}
         >
-          {['Alle', 'AI', 'Marketing'].map((label) => (
-            <button
-              key={label}
-              className="px-4 py-2 text-[13px] font-medium rounded-[60px] border transition-all"
-              style={{
-                background: label === 'Alle' ? 'var(--offblack)' : 'transparent',
-                color: label === 'Alle' ? 'var(--white)' : 'var(--offblack)',
-                borderColor: label === 'Alle' ? 'var(--offblack)' : 'rgba(72,72,72,0.18)',
-              }}
-            >
-              {label}
-            </button>
-          ))}
+          {[
+            { label: 'Alle', value: 'alle' as const },
+            { label: 'AI', value: 'ai' as const },
+            { label: 'Marketing', value: 'marketing' as const },
+            { label: '⚡ Opsummerede', value: 'summarized' as const },
+          ].map(({ label, value }) => {
+            const isActive = filter === value
+            const href = value === 'alle' ? '/' : `/?filter=${value}`
+            return (
+              <Link
+                key={value}
+                href={href}
+                className="px-4 py-2 text-[13px] font-medium rounded-[60px] border transition-all"
+                style={{
+                  background: isActive ? 'var(--offblack)' : 'transparent',
+                  color: isActive ? 'var(--white)' : 'var(--offblack)',
+                  borderColor: isActive ? 'var(--offblack)' : 'rgba(72,72,72,0.18)',
+                  textDecoration: 'none',
+                }}
+              >
+                {label}
+              </Link>
+            )
+          })}
         </div>
 
         {/* ARTICLE LIST */}
         {!articles.length ? (
           <p style={{ color: 'var(--gunmetal)', fontSize: 16 }}>
-            Ingen artikler de seneste 30 dage.
+            {filter === 'summarized'
+              ? 'Ingen artikler er opsummeret endnu — klik ⚡ på en artikel for at lave en opsummering.'
+              : filter === 'ai'
+              ? 'Ingen AI-artikler de seneste 30 dage.'
+              : filter === 'marketing'
+              ? 'Ingen marketing-artikler de seneste 30 dage.'
+              : 'Ingen artikler de seneste 30 dage.'}
           </p>
         ) : (
           <>
