@@ -25,7 +25,7 @@ links_to:
 **Filer:** `app/api/generate-unified/route.ts` (ny), `app/components/GenerateUnifiedButton.tsx` (ny), `app/digest/page.tsx`, `01_docs/Prompts/Unified Output Prompt.md` (ny), `scripts/sync-prompt.js`, `01_docs/Documentation/Migrations.md`, Supabase `digests` (nye kolonner)
 **Begrundelse:** Digest-siden viser artikel-kort, men export til PDF/email kræver ét sammenhængende narrativ-dokument. Ny knap "Saml til rapport" tager eksisterende digest-indhold som input og laver en struktureret briefing der efterfølgende kan eksporteres (#8).
 **Konsekvenser:** Schema-tilføjelse: `digests.unified_content` + `unified_generated_at`. Ny knap vises kun når digest eksisterer. Rapport rendres ØVERST på `/digest` over artikel-kortene. Format: THEME / CONTEXT / KEY_INSIGHTS (3-4) / TRENDS / SOURCES — uden action items.
-**Commit:** pending — fase 4
+**Commit:** d6e0d91 (kode) · SQL kørt manuelt 2026-05-07
 
 ### 2026-05-07 — Sprint 5 #9: Feed-filter inkl. "kun opsummerede"
 **Filer:** `app/page.tsx`
