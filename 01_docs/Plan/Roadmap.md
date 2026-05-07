@@ -3,7 +3,7 @@ title: "Project Roadmap"
 type: plan
 protection: locked
 claude_write_access: true
-updated: 2026-05-05
+updated: 2026-05-04
 links_to:
   - "../CHANGELOG"
   - "../Documentation/DB-schema"
@@ -42,7 +42,6 @@ Målgruppe: én eller flere brugere der vil holde sig opdateret på AI + marketi
 - ⏳ Mobil-responsivt design
 
 ### Eksplicit IKKE i MVP
-- Export PDF
 - Del/share digest
 - Digest arkiv detalje
 - Personaliseret score per bruger
@@ -83,7 +82,7 @@ Målgruppe: én eller flere brugere der vil holde sig opdateret på AI + marketi
 - ✅ Konsolidering af kontrol-center til `docs/`
 - ⏳ Mobil-responsiv gennemgang
 
-### Sprint 5 — Curated Digest & Feed Cleanup 📋
+### Sprint 5 — Curated Digest & Feed Cleanup ✅
 **Periode:** Maj 2026
 
 **Tema:** Brugeren får finkornet kontrol over hvad der ender i digest. Feedet bliver mere relevant via tidsfiltrering og uge-segmentering. Det udvidede digest får sit eget format og export-mulighed.
@@ -110,9 +109,9 @@ Målgruppe: én eller flere brugere der vil holde sig opdateret på AI + marketi
 7. Feed: "Kort opsummering"-knap → cached LLM-extract *(MAJOR)*
 
 **Fase 4 — Filter + Konsolidering + Export**
+8. Digest: Export til PDF + email *(MAJOR — leveret)*
 9. Feed: filter for "kun opsummerede artikler" *(MAJOR — leveret)*
 10. Digest: "Saml til rapport"-knap → struktureret briefing *(MAJOR — leveret)*
-8. Digest: Export til PDF + email *(MAJOR — leveret)*
 11. Digest: Manuel redigering af rapport før export *(MAJOR — leveret)*
 
 ---
@@ -138,32 +137,3 @@ Se: [CHANGELOG MAJOR 2026-05-04]
 Digest-prompten lever i `settings`-tabellen, drives af Obsidian-noten.
 Sync via `node scripts/sync-prompt.js`. Ingen redeploy ved prompt-ændring.
 
----
-
-## 📝 Recent Updates
-
-> **Append-only.** Tilføj nye entries i toppen af denne sektion via `/changelog`.
-
-### 2026-05-05 — Sprint 5 planlagt: Curated Digest & Feed Cleanup
-**Type:** new-feature (sprint-planning)
-**Hvad ændres:** 7 nye features + 1 rename, opdelt i 4 faser. Brugeren får eksplicit kontrol over digest-indhold via separat "send til digest"-flow.
-**Hvorfor:** Curation > automation. Digest skal være brugerens valg, ikke algoritmens. Feedet skal kun vise relevant nyt indhold.
-**Påvirker:** Sprint 4 lukket. Sprint 5 åbnet. Datamodel udvides med `user_digest_queue` + global short_summary kolonne.
-
-### 2026-05-05 — Reorganisering af 01_docs/ struktur
-**Type:** scope-shift (workflow)
-**Hvad ændres:** 01_docs/ opdelt i Plan/ (active), Documentation/ (stable), Archive/ (frozen). Generel viden flyttet til separat vault.
-**Hvorfor:** Ryd op før Sprint 5. Feed Site Plan og Roadmap overlappede.
-**Påvirker:** Single source of truth for forward-looking planning. Documentation/ er nu det rigtige sted for stable docs.
-
-### 2026-05-05 — Changelog-system med skill
-**Type:** new-feature (workflow)
-**Hvad ændres:** `/changelog` skill der kategoriserer ændringer i Plan/Major/Minor og opdaterer rette filer.
-**Hvorfor:** Forhindre tab af kontekst på tværs af AI-sessioner. Tvinge konsistent dokumentation.
-**Påvirker:** Alle fremtidige ændringer i `docs/` og kode.
-
-### 2026-05-05 — Konsolidering af kontrol-center
-**Type:** scope-shift
-**Hvad ændres:** Obsidian vault `Claude_design/` flyttet ind som `docs/` i projektet.
-**Hvorfor:** Tidligere to separate rødder uden fælles historik.
-**Påvirker:** Sprint 4 polish — nu komplet bortset fra mobil.

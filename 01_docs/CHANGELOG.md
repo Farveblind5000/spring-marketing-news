@@ -206,4 +206,4 @@ links_to:
 
 ---
 
-_Tidligere historik findes i `git log -- docs/` og git history generelt._
+_Tidligere historik findes i `git log -- 01_docs/` og git history generelt._
