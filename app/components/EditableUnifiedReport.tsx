@@ -1,7 +1,41 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import { useRouter } from 'next/navigation'
+
+// Auto-resize textarea — vokser til at passe indholdet, ingen scroll
+function AutoTextarea({
+  value,
+  onChange,
+  disabled,
+  style,
+  minHeight = 60,
+}: {
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+  disabled?: boolean
+  style?: React.CSSProperties
+  minHeight?: number
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null)
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.max(el.scrollHeight, minHeight)}px`
+  }, [value, minHeight])
+
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      onChange={onChange}
+      disabled={disabled}
+      style={{ ...style, overflow: 'hidden', resize: 'none' }}
+    />
+  )
+}
 
 interface UnifiedContent {
   theme: string
@@ -107,12 +141,12 @@ export default function EditableUnifiedReport({ unified }: Props) {
 
         {/* Context */}
         <FieldLabel>Context</FieldLabel>
-        <textarea
+        <AutoTextarea
           value={edited.context}
           onChange={e => setEdited(prev => ({ ...prev, context: e.target.value }))}
-          rows={4}
           style={inputStyle({ fontSize: 14 })}
           disabled={saving}
+          minHeight={80}
         />
 
         {/* Insights */}
@@ -128,12 +162,12 @@ export default function EditableUnifiedReport({ unified }: Props) {
               }}>
                 {i + 1}
               </div>
-              <textarea
+              <AutoTextarea
                 value={insight}
                 onChange={e => updateInsight(i, e.target.value)}
-                rows={2}
                 style={inputStyle({ fontSize: 14, marginBottom: 0 })}
                 disabled={saving}
+                minHeight={48}
               />
               <button
                 onClick={() => removeInsight(i)}
@@ -170,12 +204,12 @@ export default function EditableUnifiedReport({ unified }: Props) {
 
         {/* Trends */}
         <FieldLabel>Tendenser</FieldLabel>
-        <textarea
+        <AutoTextarea
           value={edited.trends}
           onChange={e => setEdited(prev => ({ ...prev, trends: e.target.value }))}
-          rows={3}
           style={inputStyle({ fontSize: 14 })}
           disabled={saving}
+          minHeight={70}
         />
 
         {/* Sources */}
@@ -324,7 +358,6 @@ function inputStyle(extra: React.CSSProperties = {}): React.CSSProperties {
     border: '1px solid rgba(72,72,72,0.18)',
     borderRadius: 8,
     outline: 'none',
-    resize: 'vertical',
     marginBottom: 20,
     lineHeight: 1.5,
     ...extra,
