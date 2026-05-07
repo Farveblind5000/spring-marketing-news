@@ -81,8 +81,7 @@ export async function POST(req: Request) {
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.2,
-            maxOutputTokens: 1000,
-            thinkingConfig: { thinkingBudget: 0 },  // Slå Gemini 2.5 Flash thinking fra — den spiser output-tokens
+            maxOutputTokens: 4000,  // Højt budget fordi Gemini 2.5 Flash bruger thinking-tokens internt
           },
         }),
       }

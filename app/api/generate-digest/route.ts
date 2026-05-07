@@ -149,8 +149,9 @@ export async function POST() {
   }
 
   try {
-    // Skaler maxOutputTokens med antal artikler (~600 tokens per artikel-block)
-    const maxOutputTokens = Math.min(8000, 1500 + articles.length * 600)
+    // Skaler maxOutputTokens med antal artikler — ekstra højt fordi Gemini 2.5 Flash
+    // bruger thinking-tokens internt (op til ~2000 tokens før visible output)
+    const maxOutputTokens = Math.min(16000, 4000 + articles.length * 800)
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -162,7 +163,6 @@ export async function POST() {
           generationConfig: {
             temperature: 0.3,
             maxOutputTokens,
-            thinkingConfig: { thinkingBudget: 0 },  // Slå thinking fra — sparer tokens til faktisk output
           },
         }),
       }
