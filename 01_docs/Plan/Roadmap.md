@@ -110,9 +110,10 @@ Målgruppe: én eller flere brugere der vil holde sig opdateret på AI + marketi
 7. Feed: "Kort opsummering"-knap → cached LLM-extract *(MAJOR)*
 
 **Fase 4 — Filter + Konsolidering + Export**
-9. Feed: filter for "kun opsummerede artikler" *(MAJOR)*
-10. Digest: "Saml til rapport"-knap → struktureret briefing *(MAJOR)*
-8. Digest: Export til PDF + email — eksporterer rapporten fra #10 *(MAJOR — afventer format-spec)*
+9. Feed: filter for "kun opsummerede artikler" *(MAJOR — leveret)*
+10. Digest: "Saml til rapport"-knap → struktureret briefing *(MAJOR — leveret)*
+8. Digest: Export til PDF + email *(MAJOR — leveret)*
+11. Digest: Manuel redigering af rapport før export *(MAJOR — leveret)*
 
 ---
 

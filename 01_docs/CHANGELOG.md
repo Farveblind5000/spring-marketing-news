@@ -33,6 +33,12 @@ links_to:
 **Konsekvenser:** Filter-tabs bliver funktionelle Links med URL searchParams (`?filter=ai|marketing|summarized`). Server-side filtering på query. "Denne uge"/"Ældre uger" split anvendes på filtrerede resultater.
 **Commit:** 4961e90
 
+### 2026-05-07 — Sprint 5 #11: Manuel redigering af samlet rapport
+**Filer:** `app/api/update-unified/route.ts` (ny), `app/components/EditableUnifiedReport.tsx` (ny), `app/digest/page.tsx`
+**Begrundelse:** LLM-output bør altid kunne finjusteres af mennesker før export. Bruger kan nu rette tekst, fjerne/tilføje insights, justere sprog inden PDF/email sendes.
+**Konsekvenser:** Refaktor af inline unified-section til Client Component med view/edit modes. "✏️ Rediger"-knap i top af rapport-kortet → form med textareas/inputs → Gem opdaterer DB. Ingen schema-ændring. unified_generated_at bevares som AI-timestamp; manuel rettelse resetter den ikke.
+**Commit:** 5c9ee55
+
 ### 2026-05-07 — Sprint 5 #8: Export til PDF + email
 **Filer:** `app/components/UnifiedReportPDF.tsx` (ny), `app/api/export-pdf/route.tsx` (ny), `app/api/export-email/route.tsx` (ny), `app/components/ExportButton.tsx` (ny), `app/digest/page.tsx`, `package.json` (+@react-pdf/renderer +resend)
 **Begrundelse:** Lukker Sprint 5 — eksporterer den samlede rapport (#10) til PDF og email.
