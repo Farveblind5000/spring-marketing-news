@@ -129,6 +129,11 @@ links_to:
 
 > Bugfixes, tweaks, små rettelser uden strukturpåvirkning.
 
+### 2026-05-07 — Auto-expand summary ved filter=summarized
+**Filer:** `app/components/ArticleCard.tsx`, `app/page.tsx`
+**Beskrivelse:** UX-forbedring: når brugeren filtrerer til "⚡ Opsummerede"-tab er det ulogisk at skulle klikke på lyn-ikonet på hver artikel for at se opsummeringen. Tilføjet `defaultExpanded`-prop på ArticleCard som passes når filter==='summarized'. Ingen ekstra LLM-kald da summaries allerede er cached.
+**Commit:** 4202c6e
+
 ### 2026-05-07 — Fjernet relevance_score fra UI
 **Filer:** `app/components/ArticleCard.tsx`
 **Beskrivelse:** Legacy score (1-10 fra Gemini) er ikke længere relevant efter Sprint 5's manuelle curation-flow. Inkonsistent visning (nogle artikler havde, andre ikke) lignede en bug. Fjernet rendering. DB-kolonne `relevance_score` bevaret.
