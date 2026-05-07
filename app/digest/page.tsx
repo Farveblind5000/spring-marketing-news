@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import GenerateDigestButton from '@/app/components/GenerateDigestButton'
 import GenerateUnifiedButton from '@/app/components/GenerateUnifiedButton'
+import ExportButton from '@/app/components/ExportButton'
 
 function weekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
@@ -301,6 +302,7 @@ export default async function DigestPage() {
                 {' · '}baseret på dine valgte artikler
               </p>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+                {unified && <ExportButton defaultRecipient={user.email ?? ''} />}
                 <GenerateUnifiedButton hasUnified={!!unified} />
                 {totalQueued > 0 && (
                   <GenerateDigestButton savedCount={totalQueued} />

@@ -32,3 +32,9 @@ Pass : BigDickEnergy
 Henrik
 hela@spring-cc.com
 AIupDate
+
+[Sign up · Resend](https://resend.com/signup)
+
+Mail: mieo@spring-cc.com
+Pass: Habil5001#111
+API key: re_YnBDQvCa_Gs8zmDey6WJ6QMRdxnaX5Y97
