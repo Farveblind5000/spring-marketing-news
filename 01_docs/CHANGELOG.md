@@ -27,11 +27,11 @@ links_to:
 **Konsekvenser:** Ny export-knap på digest-siden. Backend-endpoint til PDF-generering. Email via Supabase eller anden service.
 **Commit:** pending — fase 4
 
-### 2026-05-05 — Sprint 5 #7: Cache for korte LLM-opsummeringer
-**Filer:** Supabase `articles` tabel (ny kolonne), nyt API endpoint
+### 2026-05-07 — Sprint 5 #7: Cache for korte LLM-opsummeringer
+**Filer:** `app/api/short-summary/route.ts` (ny), `app/components/ArticleCard.tsx` (ny), `app/page.tsx`, `app/saved/page.tsx`, Supabase `articles` (nye kolonner), `01_docs/Documentation/Migrations.md`
 **Begrundelse:** "Kort opsummering"-knap kalder LLM. Global cache (én pr. artikel) sparer omkostning og giver instant UX for 2+ brugere.
-**Konsekvenser:** Schema-tilføjelse: `articles.short_summary TEXT`. Nyt endpoint `/api/short-summary`. UI-knap.
-**Commit:** pending — fase 3
+**Konsekvenser:** Schema-tilføjelse: `articles.short_summary` + `short_summary_generated_at` + RLS-policy. Refaktor til `<ArticleCard>` Client Component der samler alle aktionsknapper og expandable summary. Nyt POST endpoint `/api/short-summary` med DB-cache check først.
+**Commit:** 6835466 (kode) · SQL kørt manuelt 2026-05-07
 
 ### 2026-05-05 — Sprint 5 #6: Digest viser valgte artikler + udvidet summary
 **Filer:** `app/digest/page.tsx`, `app/api/generate-digest/route.ts`, `app/components/GenerateDigestButton.tsx`, `01_docs/Prompts/Digest System Prompt.md`
