@@ -224,6 +224,13 @@ export default async function DigestPage() {
               </section>
             )}
 
+            {/* Eksport-knap — placeret under den samlede rapport */}
+            {unified && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 56, marginTop: -32 }}>
+                <ExportButton defaultRecipient={user.email ?? ''} />
+              </div>
+            )}
+
             <div style={{ borderTop: '1px solid rgba(72,72,72,0.12)', marginBottom: 40 }} />
 
             {/* Artikler — én kort pr. valgt artikel */}
@@ -302,7 +309,6 @@ export default async function DigestPage() {
                 {' · '}baseret på dine valgte artikler
               </p>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-                {unified && <ExportButton defaultRecipient={user.email ?? ''} />}
                 <GenerateUnifiedButton hasUnified={!!unified} />
                 {totalQueued > 0 && (
                   <GenerateDigestButton savedCount={totalQueued} />
