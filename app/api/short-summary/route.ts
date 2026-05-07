@@ -79,7 +79,11 @@ export async function POST(req: Request) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.2, maxOutputTokens: 800 },
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 1000,
+            thinkingConfig: { thinkingBudget: 0 },  // Slå Gemini 2.5 Flash thinking fra — den spiser output-tokens
+          },
         }),
       }
     )
