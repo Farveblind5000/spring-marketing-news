@@ -19,6 +19,19 @@ interface UnifiedContent {
   sources: string
 }
 
+interface DigestArticle {
+  title: string
+  source: string
+  url?: string | null
+  summary: string
+  takeaways: string[]
+}
+
+interface DigestContent {
+  intro: string
+  articles: DigestArticle[]
+}
+
 export async function POST() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -33,7 +46,7 @@ export async function POST() {
 
   const { data: digest } = await supabase
     .from('digests')
-    .select('unified_content, unified_generated_at')
+    .select('content, unified_content, unified_generated_at')
     .eq('user_id', user.id)
     .eq('week_number', currentWeek)
     .eq('year', currentYear)
@@ -51,17 +64,28 @@ export async function POST() {
     return NextResponse.json({ error: 'Rapport-data kunne ikke parses' }, { status: 500 })
   }
 
+  // Hent artikel-kort fra digest.content
+  let articles: DigestArticle[] = []
+  try {
+    const digestData: DigestContent = JSON.parse(digest.content)
+    if (Array.isArray(digestData.articles)) articles = digestData.articles
+  } catch {
+    // Fallback: ingen artikler i PDF hvis parse fejler
+    articles = []
+  }
+
   try {
     const buffer = await renderToBuffer(
       <UnifiedReportPDF
         unified={unified}
+        articles={articles}
         week={currentWeek}
         year={currentYear}
         generatedAt={digest.unified_generated_at ?? new Date().toISOString()}
       />
     )
 
-    const filename = `spring-marketing-news-uge-${currentWeek}-${currentYear}.pdf`
+    const filename = `emils-ai-news-uge-${currentWeek}-${currentYear}.pdf`
 
     return new Response(new Uint8Array(buffer), {
       status: 200,

@@ -20,6 +20,19 @@ interface UnifiedContent {
   sources: string
 }
 
+interface DigestArticle {
+  title: string
+  source: string
+  url?: string | null
+  summary: string
+  takeaways: string[]
+}
+
+interface DigestContent {
+  intro: string
+  articles: DigestArticle[]
+}
+
 function buildHtmlBody(unified: UnifiedContent, week: number, year: number): string {
   const insightsHtml = unified.insights
     .map((insight, i) => `
@@ -43,8 +56,7 @@ function buildHtmlBody(unified: UnifiedContent, week: number, year: number): str
       <table role="presentation" width="100%" style="border-bottom: 1px solid #E0E0E0; padding-bottom: 14px; margin-bottom: 28px;">
         <tr>
           <td>
-            <div style="font-size: 16px; font-weight: 700; color: #1A1A1A;">Spring<span style="color: #FF3700;">CC</span></div>
-            <div style="font-size: 9px; color: #484848; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;">News Intel</div>
+            <div style="font-size: 16px; font-weight: 700; color: #1A1A1A; letter-spacing: 1px;">EMILS <span style="color: #FF3700;">AI</span> NEWS</div>
           </td>
           <td align="right">
             <div style="font-size: 10px; color: #484848; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Uge ${week}, ${year}</div>
@@ -115,7 +127,7 @@ export async function POST(req: Request) {
 
   const { data: digest } = await supabase
     .from('digests')
-    .select('unified_content, unified_generated_at')
+    .select('content, unified_content, unified_generated_at')
     .eq('user_id', user.id)
     .eq('week_number', currentWeek)
     .eq('year', currentYear)
@@ -133,11 +145,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Rapport-data kunne ikke parses' }, { status: 500 })
   }
 
+  // Hent artikel-kort fra digest.content (til PDF, ikke email-body)
+  let articles: DigestArticle[] = []
   try {
-    // Generér PDF som vedhæftning
+    const digestData: DigestContent = JSON.parse(digest.content)
+    if (Array.isArray(digestData.articles)) articles = digestData.articles
+  } catch {
+    articles = []
+  }
+
+  try {
+    // Generér PDF som vedhæftning (inkl. artikel-kort)
     const pdfBuffer = await renderToBuffer(
       <UnifiedReportPDF
         unified={unified}
+        articles={articles}
         week={currentWeek}
         year={currentYear}
         generatedAt={digest.unified_generated_at ?? new Date().toISOString()}
@@ -145,13 +167,13 @@ export async function POST(req: Request) {
     )
 
     const html = buildHtmlBody(unified, currentWeek, currentYear)
-    const filename = `spring-marketing-news-uge-${currentWeek}-${currentYear}.pdf`
+    const filename = `emils-ai-news-uge-${currentWeek}-${currentYear}.pdf`
 
     const resend = new Resend(apiKey)
     const result = await resend.emails.send({
-      from: 'Spring Marketing News <onboarding@resend.dev>',
+      from: 'EMILS AI NEWS <onboarding@resend.dev>',
       to: recipient,
-      subject: `Spring Marketing News — Uge ${currentWeek}, ${currentYear}`,
+      subject: `EMILS AI NEWS — Uge ${currentWeek}, ${currentYear}`,
       html,
       attachments: [
         {
