@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import GenerateDigestButton from '@/app/components/GenerateDigestButton'
+import GenerateUnifiedButton from '@/app/components/GenerateUnifiedButton'
 
 function weekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
@@ -24,11 +25,32 @@ interface DigestContent {
   articles: DigestArticle[]
 }
 
+interface UnifiedContent {
+  theme: string
+  context: string
+  insights: string[]
+  trends: string
+  sources: string
+}
+
 function parseDigestContent(raw: string): DigestContent | null {
   try {
     const parsed = JSON.parse(raw)
     if (parsed.intro && Array.isArray(parsed.articles) && parsed.articles.length > 0) {
       return parsed as DigestContent
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+function parseUnifiedContent(raw: string | null): UnifiedContent | null {
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw)
+    if (parsed.theme && Array.isArray(parsed.insights)) {
+      return parsed as UnifiedContent
     }
     return null
   } catch {
@@ -62,6 +84,7 @@ export default async function DigestPage() {
     .eq('user_id', user.id)
 
   const structured = digest ? parseDigestContent(digest.content) : null
+  const unified = digest ? parseUnifiedContent(digest.unified_content) : null
   const totalQueued = queuedCount ?? 0
   const isLegacyDigest = digest && !structured  // gammelt format i DB
 
@@ -125,6 +148,80 @@ export default async function DigestPage() {
             <p style={{ fontSize: 18, lineHeight: 1.75, color: 'var(--offblack)', margin: '0 0 48px', fontWeight: 400 }}>
               {structured.intro}
             </p>
+
+            {/* SAMLET RAPPORT — øverst hvis genereret */}
+            {unified && (
+              <section style={{
+                background: 'var(--white)',
+                border: '1px solid rgba(255,55,0,0.3)',
+                borderRadius: 16,
+                padding: '32px 36px',
+                marginBottom: 56,
+              }}>
+                <p className="eyebrow m-0" style={{ marginBottom: 14, fontSize: 11 }}>
+                  📋 Samlet rapport
+                </p>
+
+                {/* Theme */}
+                <h2 style={{ fontWeight: 500, fontSize: 24, lineHeight: 1.3, color: 'var(--offblack)', margin: '0 0 24px' }}>
+                  {unified.theme}
+                </h2>
+
+                {/* Context */}
+                {unified.context && (
+                  <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--offblack)', margin: '0 0 28px' }}>
+                    {unified.context}
+                  </p>
+                )}
+
+                {/* Insights */}
+                {unified.insights.length > 0 && (
+                  <div style={{ marginBottom: 24 }}>
+                    <p className="eyebrow m-0" style={{ marginBottom: 14, fontSize: 11 }}>Hovedindsigter</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                      {unified.insights.map((insight, i) => (
+                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '24px 1fr', gap: 12, alignItems: 'start' }}>
+                          <div style={{
+                            width: 24, height: 24, borderRadius: '50%',
+                            background: 'var(--orange)', color: 'var(--white)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 2,
+                          }}>
+                            {i + 1}
+                          </div>
+                          <p style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--offblack)', margin: 0 }}>
+                            {insight}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Trends */}
+                {unified.trends && (
+                  <div style={{
+                    background: 'rgba(255,55,0,0.04)',
+                    borderLeft: '2px solid var(--orange)',
+                    padding: '14px 18px',
+                    borderRadius: '0 8px 8px 0',
+                    marginBottom: 18,
+                  }}>
+                    <p className="eyebrow m-0" style={{ marginBottom: 6, fontSize: 11 }}>Tendenser</p>
+                    <p style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--offblack)', margin: 0 }}>
+                      {unified.trends}
+                    </p>
+                  </div>
+                )}
+
+                {/* Sources */}
+                {unified.sources && (
+                  <p style={{ fontSize: 12, color: 'var(--gunmetal)', margin: '14px 0 0', fontStyle: 'italic' }}>
+                    Kilder: {unified.sources}
+                  </p>
+                )}
+              </section>
+            )}
 
             <div style={{ borderTop: '1px solid rgba(72,72,72,0.12)', marginBottom: 40 }} />
 
@@ -198,14 +295,17 @@ export default async function DigestPage() {
             <div style={{ borderTop: '1px solid rgba(72,72,72,0.12)', marginBottom: 32 }} />
 
             {/* Footer + regenerer */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-              <p style={{ fontSize: 13, color: 'var(--gunmetal)', margin: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+              <p style={{ fontSize: 13, color: 'var(--gunmetal)', margin: 0, paddingTop: 12 }}>
                 Genereret {new Date(digest.created_at).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long' })}
                 {' · '}baseret på dine valgte artikler
               </p>
-              {totalQueued > 0 && (
-                <GenerateDigestButton savedCount={totalQueued} />
-              )}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+                <GenerateUnifiedButton hasUnified={!!unified} />
+                {totalQueued > 0 && (
+                  <GenerateDigestButton savedCount={totalQueued} />
+                )}
+              </div>
             </div>
           </div>
 

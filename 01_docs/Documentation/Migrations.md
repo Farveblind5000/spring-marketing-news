@@ -16,6 +16,25 @@ links_to:
 
 ---
 
+## 2026-05-07 — Sprint 5 #10: Unified report storage på digests
+
+**Formål:** Gem konsolideret briefing-rapport på samme row som digest. 1:1-relation, så ingen ny tabel.
+
+```sql
+ALTER TABLE digests
+ADD COLUMN IF NOT EXISTS unified_content TEXT,
+ADD COLUMN IF NOT EXISTS unified_generated_at TIMESTAMPTZ;
+```
+
+**Verificering:**
+```sql
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'digests' AND column_name LIKE 'unified%';
+-- skal returnere 2 rows
+```
+
+---
+
 ## 2026-05-07 — Sprint 5 #7: Cache for korte LLM-opsummeringer
 
 **Formål:** Global cache så LLM kun kaldes én gang per artikel, uanset hvor mange brugere klikker.

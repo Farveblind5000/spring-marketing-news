@@ -16,6 +16,7 @@ const ENV_FILE = path.join(__dirname, '..', '.env.local')
 const PROMPTS = [
   { file: 'Digest System Prompt.md', settingsKey: 'digest_prompt' },
   { file: 'Short Summary Prompt.md', settingsKey: 'short_summary_prompt' },
+  { file: 'Unified Output Prompt.md', settingsKey: 'unified_prompt' },
 ]
 
 // ── Læs env vars ──────────────────────────────────────────────
