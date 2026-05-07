@@ -33,11 +33,11 @@ links_to:
 **Konsekvenser:** Filter-tabs bliver funktionelle Links med URL searchParams (`?filter=ai|marketing|summarized`). Server-side filtering på query. "Denne uge"/"Ældre uger" split anvendes på filtrerede resultater.
 **Commit:** 4961e90
 
-### 2026-05-05 — Sprint 5 #8: Export til PDF + email
-**Filer:** TBD — afventer format-spec
-**Begrundelse:** Brugere skal kunne eksportere digest til PDF (visuel) og email (handlingsrettet).
-**Konsekvenser:** Ny export-knap på digest-siden. Backend-endpoint til PDF-generering. Email via Supabase eller anden service.
-**Commit:** pending — fase 4
+### 2026-05-07 — Sprint 5 #8: Export til PDF + email
+**Filer:** `app/components/UnifiedReportPDF.tsx` (ny), `app/api/export-pdf/route.tsx` (ny), `app/api/export-email/route.tsx` (ny), `app/components/ExportButton.tsx` (ny), `app/digest/page.tsx`, `package.json` (+@react-pdf/renderer +resend)
+**Begrundelse:** Lukker Sprint 5 — eksporterer den samlede rapport (#10) til PDF og email.
+**Konsekvenser:** Ny dropdown-knap "Eksporter ▾" ved siden af Saml/Generer. PDF: 1-side A4 med Spring CC brand, 1:1 mapping af unified-data. Email: HTML body + PDF attached, default recipient = login-email, kan overskrives. Resend API (gratis 100/dag, FROM: onboarding@resend.dev for nu). RESEND_API_KEY tilføjet til .env.local + Vercel.
+**Commit:** 529b836
 
 ### 2026-05-07 — Sprint 5 #7: Cache for korte LLM-opsummeringer
 **Filer:** `app/api/short-summary/route.ts` (ny), `app/components/ArticleCard.tsx` (ny), `app/page.tsx`, `app/saved/page.tsx`, Supabase `articles` (nye kolonner), `01_docs/Documentation/Migrations.md`
