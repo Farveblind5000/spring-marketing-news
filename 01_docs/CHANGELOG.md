@@ -135,6 +135,11 @@ links_to:
 
 > Bugfixes, tweaks, små rettelser uden strukturpåvirkning.
 
+### 2026-05-07 — Unified rapport: token-tuning + bedre fejl
+**Filer:** `app/api/generate-unified/route.ts`
+**Beskrivelse:** Initial token-cap (4800 for 2 artikler) gav tom respons fra Gemini — samme issue som digest tidligere. Sænket til 3000+200*N capped 6000 (output-format er fast størrelse). Tilføjet verbose error med geminiData.error.message + candidates count.
+**Commit:** f87f4f2
+
 ### 2026-05-07 — Auto-expand summary ved filter=summarized
 **Filer:** `app/components/ArticleCard.tsx`, `app/page.tsx`
 **Beskrivelse:** UX-forbedring: når brugeren filtrerer til "⚡ Opsummerede"-tab er det ulogisk at skulle klikke på lyn-ikonet på hver artikel for at se opsummeringen. Tilføjet `defaultExpanded`-prop på ArticleCard som passes når filter==='summarized'. Ingen ekstra LLM-kald da summaries allerede er cached.
