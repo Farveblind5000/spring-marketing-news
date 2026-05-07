@@ -68,7 +68,9 @@ export default function ArticleCard({
 
   const sourceName = article.sources?.name ?? ''
   const topic = article.topic as 'ai' | 'marketing' | 'both'
-  const headlines = shortSummary?.split('\n').filter(Boolean) ?? []
+  const allLines = shortSummary?.split('\n').filter(Boolean) ?? []
+  const description = allLines[0] ?? ''
+  const bullets = allLines.slice(1)
 
   return (
     <div style={{ borderTop: `1px solid rgba(72,72,72,${isFirst ? '0.18' : '0.12'})` }}>
@@ -190,14 +192,28 @@ export default function ArticleCard({
             </p>
           ) : error ? (
             <p style={{ fontSize: 13, color: '#c0392b', margin: 0 }}>{error}</p>
-          ) : headlines.length > 0 ? (
-            <ul style={{ margin: 0, paddingLeft: 18, listStyle: 'disc' }}>
-              {headlines.map((h, i) => (
-                <li key={i} style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--offblack)', marginBottom: 4 }}>
-                  {h}
-                </li>
-              ))}
-            </ul>
+          ) : description || bullets.length > 0 ? (
+            <>
+              {description && (
+                <p style={{
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                  color: 'var(--offblack)',
+                  margin: bullets.length > 0 ? '0 0 12px' : 0,
+                }}>
+                  {description}
+                </p>
+              )}
+              {bullets.length > 0 && (
+                <ul style={{ margin: 0, paddingLeft: 18, listStyle: 'disc' }}>
+                  {bullets.map((b, i) => (
+                    <li key={i} style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--offblack)', marginBottom: 4 }}>
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
           ) : (
             <p style={{ fontSize: 13, color: 'var(--gunmetal)', margin: 0 }}>Intet indhold.</p>
           )}
