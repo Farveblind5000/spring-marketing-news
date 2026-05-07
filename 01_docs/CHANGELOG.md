@@ -123,6 +123,11 @@ links_to:
 
 > Bugfixes, tweaks, små rettelser uden strukturpåvirkning.
 
+### 2026-05-07 — Short summary: prompt til Obsidian + højere tokens
+**Filer:** `01_docs/Prompts/Short Summary Prompt.md` (ny), `scripts/sync-prompt.js`, `app/api/short-summary/route.ts`
+**Beskrivelse:** Gemini-output blev afkortet midt i sætning pga. `maxOutputTokens: 400`. Bumped til 800. Samtidig flyttet hardkodet prompt til Obsidian → Supabase pattern (samme som digest), så den kan justeres uden redeploy. Sync-script udvidet til at håndtere flere prompts.
+**Commit:** ed8a842
+
 ### 2026-05-05 — Sprint 5 #1: Rename "Ugentligt digest" → "Digest"
 **Filer:** `app/page.tsx`, `app/saved/page.tsx`, `app/digest/page.tsx`
 **Beskrivelse:** Forenklet navngivning. "Ugentligt" var overflødigt — det forventes at være ugentligt.
