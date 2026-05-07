@@ -123,6 +123,21 @@ links_to:
 
 > Bugfixes, tweaks, små rettelser uden strukturpåvirkning.
 
+### 2026-05-07 — Fjernet relevance_score fra UI
+**Filer:** `app/components/ArticleCard.tsx`
+**Beskrivelse:** Legacy score (1-10 fra Gemini) er ikke længere relevant efter Sprint 5's manuelle curation-flow. Inkonsistent visning (nogle artikler havde, andre ikke) lignede en bug. Fjernet rendering. DB-kolonne `relevance_score` bevaret.
+**Commit:** f9b6b66
+
+### 2026-05-07 — Digest button stuck i loading state
+**Filer:** `app/components/GenerateDigestButton.tsx`
+**Beskrivelse:** `setLoading(false)` lå kun i catch-blok — efter succesful generation forblev knappen i loading state. Flyttet til finally-blok.
+**Commit:** 5d4c89f
+
+### 2026-05-07 — Gemini 2.5 Flash thinking-tokens workaround
+**Filer:** `app/api/short-summary/route.ts`, `app/api/generate-digest/route.ts`
+**Beskrivelse:** Gemini 2.5 Flash bruger interne thinking-tokens før synlig output. `thinkingConfig: {thinkingBudget: 0}` blev afvist på v1-endpoint → tom respons. Fix: bumpede maxOutputTokens til 4000 (short summary) og 3000+500*N capped 8000 (digest), så thinking + visible output begge har plads. Tilføjet verbose error med finishReason.
+**Commit:** 5496f73, 1d5bc19
+
 ### 2026-05-07 — Short summary: prompt til Obsidian + højere tokens
 **Filer:** `01_docs/Prompts/Short Summary Prompt.md` (ny), `scripts/sync-prompt.js`, `app/api/short-summary/route.ts`
 **Beskrivelse:** Gemini-output blev afkortet midt i sætning pga. `maxOutputTokens: 400`. Bumped til 800. Samtidig flyttet hardkodet prompt til Obsidian → Supabase pattern (samme som digest), så den kan justeres uden redeploy. Sync-script udvidet til at håndtere flere prompts.
