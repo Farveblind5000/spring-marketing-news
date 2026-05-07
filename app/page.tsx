@@ -1,12 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import SaveButton from '@/app/components/SaveButton'
-import SendToDigestButton from '@/app/components/SendToDigestButton'
-
-function formatDate(iso: string | null): string {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })
-}
+import ArticleCard from '@/app/components/ArticleCard'
 
 // Start på indeværende ISO-uge (mandag 00:00 lokal tid)
 function startOfCurrentWeek(): Date {
@@ -26,6 +20,7 @@ interface ArticleRow {
   published_at: string | null
   scraped_at: string | null
   summary: string | null
+  short_summary: string | null
   relevance_score: number | null
   read_time_min: number | null
   sources: { name: string } | null
@@ -42,7 +37,7 @@ export default async function FeedPage() {
 
   const { data: articlesRaw } = await supabase
     .from('articles')
-    .select('id, title, url, topic, published_at, scraped_at, summary, relevance_score, read_time_min, sources(name)')
+    .select('id, title, url, topic, published_at, scraped_at, summary, short_summary, relevance_score, read_time_min, sources(name)')
     .gte('scraped_at', thirtyDaysAgo.toISOString())
     .order('scraped_at', { ascending: false })
     .limit(100)
@@ -75,92 +70,6 @@ export default async function FeedPage() {
     .from('sources')
     .select('*', { count: 'exact', head: true })
     .eq('active', true)
-
-  // Render-helper for én artikel-række
-  const renderArticle = (article: ArticleRow, globalIndex: number, isFirst: boolean) => {
-    const sourceName = article.sources?.name ?? ''
-    const topic = article.topic as 'ai' | 'marketing' | 'both'
-
-    return (
-      <div
-        key={article.id}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '64px 1fr auto',
-          gap: 28,
-          padding: '24px 0',
-          borderTop: `1px solid rgba(72,72,72,${isFirst ? '0.18' : '0.12'})`,
-          alignItems: 'start',
-        }}
-      >
-        <div
-          style={{
-            fontFamily: 'ui-monospace, "SF Mono", monospace',
-            fontSize: 13,
-            color: 'var(--orange)',
-            paddingTop: 4,
-          }}
-        >
-          — {String(globalIndex + 1).padStart(2, '0')}
-        </div>
-
-        <a
-          href={article.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group"
-          style={{ textDecoration: 'none', color: 'inherit' }}
-        >
-          <div className="flex items-center gap-2 mb-2" style={{ fontSize: 12, color: 'var(--gunmetal)' }}>
-            <span
-              className={`eyebrow px-2 py-[3px] rounded-[40px] border text-[11px] badge-${topic}`}
-              style={{ borderColor: 'currentColor' }}
-            >
-              {topic === 'ai' ? 'AI' : 'Marketing'}
-            </span>
-            <span>{sourceName}</span>
-            <span
-              className="rounded-full opacity-50"
-              style={{ width: 3, height: 3, background: 'var(--gunmetal)', display: 'inline-block' }}
-            />
-            <span>
-              {formatDate(article.published_at)} · {article.read_time_min ?? 1} min
-            </span>
-          </div>
-          <h2
-            className="group-hover:text-[var(--orange)] transition-colors"
-            style={{ fontWeight: 400, fontSize: 22, lineHeight: 1, margin: '0 0 12px', color: 'var(--offblack)' }}
-          >
-            {article.title}
-          </h2>
-          {article.summary && (
-            <p style={{ fontSize: 14, color: 'var(--gunmetal)', lineHeight: 1.5, margin: 0 }}>
-              {article.summary}
-            </p>
-          )}
-        </a>
-
-        <div className="flex flex-col items-end gap-2 flex-shrink-0">
-          {article.relevance_score && (
-            <span style={{ fontWeight: 500, fontSize: 18, color: 'var(--offblack)', fontVariantNumeric: 'tabular-nums' }}>
-              {Number(article.relevance_score).toFixed(1)}
-              <small style={{ color: 'var(--gunmetal)', fontWeight: 400, fontSize: 12 }}> /10</small>
-            </span>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <SendToDigestButton
-              articleId={article.id}
-              initialQueued={queuedIds.has(article.id)}
-            />
-            <SaveButton
-              articleId={article.id}
-              initialSaved={savedIds.has(article.id)}
-            />
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <>
@@ -266,7 +175,16 @@ export default async function FeedPage() {
                 </p>
               ) : (
                 <div className="flex flex-col">
-                  {thisWeek.map((article, i) => renderArticle(article, i, i === 0))}
+                  {thisWeek.map((article, i) => (
+                    <ArticleCard
+                      key={article.id}
+                      article={article}
+                      index={i}
+                      isFirst={i === 0}
+                      initialSaved={savedIds.has(article.id)}
+                      initialQueued={queuedIds.has(article.id)}
+                    />
+                  ))}
                 </div>
               )}
             </section>
@@ -281,7 +199,16 @@ export default async function FeedPage() {
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  {olderWeeks.map((article, i) => renderArticle(article, thisWeek.length + i, i === 0))}
+                  {olderWeeks.map((article, i) => (
+                    <ArticleCard
+                      key={article.id}
+                      article={article}
+                      index={thisWeek.length + i}
+                      isFirst={i === 0}
+                      initialSaved={savedIds.has(article.id)}
+                      initialQueued={queuedIds.has(article.id)}
+                    />
+                  ))}
                 </div>
               </section>
             )}

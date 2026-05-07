@@ -1,12 +1,19 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import SaveButton from '@/app/components/SaveButton'
-import SendToDigestButton from '@/app/components/SendToDigestButton'
+import ArticleCard from '@/app/components/ArticleCard'
 
-function formatDate(iso: string | null): string {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })
+interface ArticleRow {
+  id: string
+  title: string
+  url: string
+  topic: 'ai' | 'marketing' | 'both' | null
+  published_at: string | null
+  summary: string | null
+  short_summary: string | null
+  relevance_score: number | null
+  read_time_min: number | null
+  sources: { name: string } | null
 }
 
 export default async function SavedPage() {
@@ -23,20 +30,22 @@ export default async function SavedPage() {
 
   const articleIds = (saves ?? []).map(s => s.article_id).filter(Boolean)
 
-  // Hent artiklerne — samme query-mønster som feed-siden
-  const { data: articles } = articleIds.length
+  // Hent artiklerne
+  const { data: articlesRaw } = articleIds.length
     ? await supabase
         .from('articles')
-        .select('id, title, url, topic, published_at, summary, relevance_score, read_time_min, sources(name)')
+        .select('id, title, url, topic, published_at, summary, short_summary, relevance_score, read_time_min, sources(name)')
         .in('id', articleIds)
     : { data: [] }
 
+  const articles = (articlesRaw ?? []) as unknown as ArticleRow[]
+
   // Bevar rækkefølgen fra user_saves
   const sorted = articleIds
-    .map(id => articles?.find(a => a.id === id))
-    .filter(Boolean)
+    .map(id => articles.find(a => a.id === id))
+    .filter((a): a is ArticleRow => !!a)
 
-  // Hent brugerens digest-queue så vi kan vise korrekt initial state
+  // Hent brugerens digest queue
   const { data: queueRows } = await supabase
     .from('user_digest_queue')
     .select('article_id')
@@ -92,7 +101,7 @@ export default async function SavedPage() {
           <h1 style={{ fontWeight: 400, fontSize: 56, lineHeight: 1, color: 'var(--offblack)', margin: '0 0 12px' }}>
             Gemte artikler.
           </h1>
-          <p className="eyebrow m-0">{sorted.length} artikel{sorted.length !== 1 ? 'er' : ''} gemt</p>
+          <p className="eyebrow m-0">{sorted.length} {sorted.length === 1 ? 'artikel' : 'artikler'} gemt</p>
         </header>
 
         {sorted.length === 0 ? (
@@ -106,91 +115,16 @@ export default async function SavedPage() {
           </div>
         ) : (
           <div className="flex flex-col">
-            {sorted.map((article, i) => {
-              if (!article) return null
-              const sourceName = (article.sources as unknown as { name: string } | null)?.name ?? ''
-              const topic = article.topic as 'ai' | 'marketing' | 'both'
-
-              return (
-                <div
-                  key={article.id}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '64px 1fr auto',
-                    gap: 28,
-                    padding: '24px 0',
-                    borderTop: `1px solid rgba(72,72,72,${i === 0 ? '0.18' : '0.12'})`,
-                    alignItems: 'start',
-                  }}
-                >
-                  {/* Index */}
-                  <div
-                    style={{
-                      fontFamily: 'ui-monospace, "SF Mono", monospace',
-                      fontSize: 13,
-                      color: 'var(--orange)',
-                      paddingTop: 4,
-                    }}
-                  >
-                    — {String(i + 1).padStart(2, '0')}
-                  </div>
-
-                  {/* Main */}
-                  <a
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    <div className="flex items-center gap-2 mb-2" style={{ fontSize: 12, color: 'var(--gunmetal)' }}>
-                      <span
-                        className={`eyebrow px-2 py-[3px] rounded-[40px] border text-[11px] badge-${topic}`}
-                        style={{ borderColor: 'currentColor' }}
-                      >
-                        {topic === 'ai' ? 'AI' : 'Marketing'}
-                      </span>
-                      <span>{sourceName}</span>
-                      <span
-                        className="rounded-full opacity-50"
-                        style={{ width: 3, height: 3, background: 'var(--gunmetal)', display: 'inline-block' }}
-                      />
-                      <span>
-                        {formatDate(article.published_at)} · {article.read_time_min ?? 1} min
-                      </span>
-                    </div>
-                    <h2
-                      className="group-hover:text-[var(--orange)] transition-colors"
-                      style={{ fontWeight: 400, fontSize: 22, lineHeight: 1, margin: '0 0 12px', color: 'var(--offblack)' }}
-                    >
-                      {article.title}
-                    </h2>
-                    {article.summary && (
-                      <p style={{ fontSize: 14, color: 'var(--gunmetal)', lineHeight: 1.5, margin: 0 }}>
-                        {article.summary}
-                      </p>
-                    )}
-                  </a>
-
-                  {/* Score + Fjern */}
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    {article.relevance_score && (
-                      <span style={{ fontWeight: 500, fontSize: 18, color: 'var(--offblack)', fontVariantNumeric: 'tabular-nums' }}>
-                        {Number(article.relevance_score).toFixed(1)}
-                        <small style={{ color: 'var(--gunmetal)', fontWeight: 400, fontSize: 12 }}> /10</small>
-                      </span>
-                    )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <SendToDigestButton
-                        articleId={article.id}
-                        initialQueued={queuedIds.has(article.id)}
-                      />
-                      <SaveButton articleId={article.id} initialSaved={true} />
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
+            {sorted.map((article, i) => (
+              <ArticleCard
+                key={article.id}
+                article={article}
+                index={i}
+                isFirst={i === 0}
+                initialSaved={true}
+                initialQueued={queuedIds.has(article.id)}
+              />
+            ))}
           </div>
         )}
       </main>

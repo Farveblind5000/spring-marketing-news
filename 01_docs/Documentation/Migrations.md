@@ -16,6 +16,33 @@ links_to:
 
 ---
 
+## 2026-05-07 — Sprint 5 #7: Cache for korte LLM-opsummeringer
+
+**Formål:** Global cache så LLM kun kaldes én gang per artikel, uanset hvor mange brugere klikker.
+
+```sql
+ALTER TABLE articles
+ADD COLUMN IF NOT EXISTS short_summary TEXT,
+ADD COLUMN IF NOT EXISTS short_summary_generated_at TIMESTAMPTZ;
+
+-- Tillad authenticated users at update (nødvendigt for cache-skrivning)
+DROP POLICY IF EXISTS "authenticated_can_update_short_summary" ON articles;
+CREATE POLICY "authenticated_can_update_short_summary" ON articles
+  FOR UPDATE
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+```
+
+**Verificering:**
+```sql
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'articles' AND column_name LIKE 'short%';
+-- skal returnere 2 rows
+```
+
+---
+
 ## 2026-05-05 — Sprint 5 #4: Tabel `user_digest_queue`
 
 **Formål:** Adskilt fra `user_saves`. "Send til digest" er en separat handling fra "gem til senere".
