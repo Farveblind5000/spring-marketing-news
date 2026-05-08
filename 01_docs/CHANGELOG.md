@@ -3,7 +3,7 @@ title: "Changelog"
 type: log
 protection: locked
 claude_write_access: true
-updated: 2026-05-05
+updated: 2026-05-08
 links_to:
   - "Plan/Roadmap"
   - "CLAUDE_RULES"
@@ -20,6 +20,27 @@ links_to:
 ## MAJOR
 
 > Strukturændringer, nye features, schema, breaking changes.
+
+### 2026-05-08 — Dok-konsolidering: CLAUDE.md, File-structure.md, DB-schema.md
+**Filer:** `CLAUDE.md` (omskrevet), `01_docs/Documentation/File-structure.md` (opdateret), `01_docs/Documentation/DB-schema.md` (opdateret)
+**Begrundelse:** Opfølgning på samme dags onboarding-dok-arbejde. Tre filer havde forældet info eller duplikerede materiale fra Tech_stack.canvas/Roadmap. Brugeren godkendte rettelse efter at have set diff-rapporten.
+**Konsekvenser:**
+- `CLAUDE.md`: skåret ned fra duplikeret tech-stack/fil-struktur/DB-tabeller til et navigations-dokument der peger på kanoniske kilder. Sprint 4-status fjernet (forældet). Gemini 2.0 → 2.5 rettet. Brand-tokens nu kun listet ét sted (`app/globals.css`).
+- `File-structure.md`: tilføjet alle 5 nye API-ruter (export-pdf/email, generate-unified, short-summary, update-unified) + alle 6 nye komponenter (ArticleCard, EditableUnifiedReport, ExportButton, GenerateUnifiedButton, SendToDigestButton, UnifiedReportPDF). Prompts-mappe nu med 3 filer. `/digest` beskrevet som "personligt digest" frem for "ugentlig". `types/` mappe tilføjet. `Komandoer.md` tilføjet i 01_docs-træ.
+- `DB-schema.md`: tilføjet `user_digest_queue`-tabel komplet med RLS-noter. `articles` udvidet med `short_summary` + `short_summary_generated_at`. `digests` udvidet med `unified_content` + `unified_generated_at`. `settings.key`-kolonne udvidet med 3 prompt-keys i stedet for kun `digest_prompt`. Vedligehold-sektion tilføjet "Ryd short_summary cache"-snippet.
+- `relevance_score` markeret som legacy/ikke-vist (matcher kode-virkelighed siden 2026-05-07 commit f9b6b66).
+**Commit:** _(pending — ikke pushet endnu)_
+
+### 2026-05-08 — Onboarding-dokumentation: ny README + opdateret Tech_stack.canvas
+**Filer:** `README.md` (omskrevet), `01_docs/Plan/Tech_stack.canvas` (opdateret)
+**Begrundelse:** README var stadig Next.js create-app boilerplate uden projekt-info — ubrugelig for ny samarbejdspartner (forberedelse til push til fælles Spring Family IT-repo). Tech_stack.canvas afspejlede kun status fra før Sprint 5: manglede 5 nye API-ruter, 6 nye komponenter, `user_digest_queue`-tabel, `short_summary` + `unified_content` kolonner, Resend, @react-pdf/renderer og 2 nye prompts.
+**Konsekvenser:**
+- README skrevet som onboarding-overblik: hvad er projektet, tech stack, lokal opsætning, fil-struktur, deploy-flow, og pegere ind i `01_docs/`.
+- Canvas omstruktureret: 6 grupper (Frontend / Backend / Data / Prompt-workflow / Konfiguration / Deployment) + opdateret indhold for alt nyt fra Sprint 5. Edges genskrevet for at afspejle reelle data-flows (ArticleCard → short-summary, EditableUnifiedReport → update-unified, ExportButton → export-pdf/email).
+- README henviser eksplicit til `01_docs/` som kontrol-center for at undgå dobbelt-vedligehold.
+- README dokumenterer to-remotes setup (`origin` personlig + `spring` Spring Family IT).
+**Note:** Forældet info i `CLAUDE.md`, `01_docs/Documentation/File-structure.md`, og `01_docs/Documentation/DB-schema.md` blev identificeret i samme session men IKKE rettet — afventer eksplicit godkendelse.
+**Commit:** _(pending — ikke pushet endnu)_
 
 ### 2026-05-07 — Sprint 5 #10: Saml til rapport (struktureret briefing)
 **Filer:** `app/api/generate-unified/route.ts` (ny), `app/components/GenerateUnifiedButton.tsx` (ny), `app/digest/page.tsx`, `01_docs/Prompts/Unified Output Prompt.md` (ny), `scripts/sync-prompt.js`, `01_docs/Documentation/Migrations.md`, Supabase `digests` (nye kolonner)

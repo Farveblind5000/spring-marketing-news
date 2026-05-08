@@ -1,89 +1,72 @@
 # SPRING MARKETING NEWS — Claude Context
 
-Et AI & marketing intelligence feed der web scraper indhold hver morgen, opsummerer med Gemini og viser det i et personligt Next.js feed.
+Et AI & marketing intelligence feed der scraper indhold dagligt, opsummerer med Gemini og kuraterer ugentlige briefinger.
+
+> **Til ny samarbejdspartner / human onboarding:** læs [README.md](README.md) i stedet.
+> Denne fil er kontekst målrettet Claude Code-sessioner.
 
 ---
 
-## Tech Stack
+## Kanoniske kilder (læs disse FØR du ændrer noget)
 
-| Lag | Teknologi | Detaljer |
-|---|---|---|
-| Frontend | Next.js 16 + TypeScript | App Router, Server Components |
-| Styling | Tailwind CSS v4 | Brand-tokens i `app/globals.css` |
-| Database | Supabase (PostgreSQL) | Projekt: `mdevyscqhpaogvsblfyp` |
-| Auth | Supabase Auth | Session via cookies (@supabase/ssr) |
-| Scraper | Supabase Edge Functions (Deno) | `npm:rss-parser@3`, `npm:@supabase/supabase-js@2` |
-| Scheduler | pg_cron + pg_net | Scraper: `0 4 * * *`, Digest: `0 18 * * 0` |
-| LLM | Gemini 2.0 Flash | Dansk summary (3 bullets) + relevance score 1-10 |
-| Deploy | Vercel | `spring-marketing-news.vercel.app` |
-
----
-
-## Fil-struktur
-
-```
-app/
-  page.tsx                    — Feed (/) — Server Component
-  login/page.tsx              — Login (/login)
-  saved/page.tsx              — Gemte artikler (/saved) — kræver auth
-  digest/page.tsx             — Ugentligt digest (/digest)
-  components/SaveButton.tsx   — Gem/fjern knap — Client Component
-lib/supabase/
-  server.ts                   — Server-side Supabase client (cookies)
-  client.ts                   — Browser-side Supabase client
-supabase/functions/
-  scrape-articles/index.ts    — RSS scraper + Gemini enrichment
-  generate-digest/index.ts    — Legacy digest (erstattet af /api/generate-digest)
-01_docs/                         — Obsidian vault (kontrol-center, planer, prompts)
-  CLAUDE_RULES.md             — Regler AI skal følge
-  CHANGELOG.md                — Append-only ændringslog
-  Plan/                       — Roadmap, tech canvas
-  Prompts/                    — Digest System Prompt (synkes til Supabase)
-  Ressourcer/                 — Brand kit, integrationer, vidensdatabase
-scripts/
-  sync-prompt.js              — Sync 01_docs/Prompts/* → Supabase settings
-```
+| Hvad du leder efter | Hvor det står |
+|---|---|
+| Vision, scope, sprint-status, beslutninger | [01_docs/Plan/Roadmap.md](01_docs/Plan/Roadmap.md) |
+| Visuelt arkitektur-overblik | [01_docs/Plan/Tech_stack.canvas](01_docs/Plan/Tech_stack.canvas) |
+| Detaljeret fil-oversigt | [01_docs/Documentation/File-structure.md](01_docs/Documentation/File-structure.md) |
+| DB-tabeller + kolonner | [01_docs/Documentation/DB-schema.md](01_docs/Documentation/DB-schema.md) |
+| SQL-migrations | [01_docs/Documentation/Migrations.md](01_docs/Documentation/Migrations.md) |
+| Append-only ændringslog | [01_docs/CHANGELOG.md](01_docs/CHANGELOG.md) |
+| Copy-paste kommando-reference | [01_docs/Komandoer.md](01_docs/Komandoer.md) |
+| Levende prompt-templates | [01_docs/Prompts/](01_docs/Prompts/) |
+| Regler for AI-redigering af `01_docs/` | [01_docs/CLAUDE_RULES.md](01_docs/CLAUDE_RULES.md) |
 
 ---
 
-## Database tabeller
+## Tech stack (kort)
 
-```
-sources      — RSS-feeds der scrapes (feed_url, topic, active)
-articles     — Scraped artikler (title, url, summary, relevance_score, read_time_min)
-user_saves   — Gemte artikler per bruger (user_id, article_id)
-digests      — Ugentlige briefinger (user_id NULL = global digest)
-```
+Next.js 16 + React 19 + TypeScript · Tailwind v4 · Supabase (PostgreSQL + Auth + Edge Functions) · Gemini 2.5 Flash · `@react-pdf/renderer` · Resend · Vercel.
+
+Det fulde overblik med dataflow ligger i [Tech_stack.canvas](01_docs/Plan/Tech_stack.canvas).
 
 ---
 
-## Vigtige regler
+## Projekt-identifikatorer
+
+- **Supabase project ref:** `mdevyscqhpaogvsblfyp`
+- **Live URL:** https://spring-marketing-news.vercel.app
+- **Git remotes:** `origin` (personlig: Farveblind5000) + `spring` (fælles: Spring-Family-IT)
+
+---
+
+## Hårde regler — Claude SKAL følge disse
+
+### Kode
 
 - `supabase/functions/` er **Deno** — brug `npm:` prefix til imports, IKKE Node.js syntax
-- `supabase/functions/` er **ekskluderet** fra `tsconfig.json` (Next.js checker dem ikke)
-- Edge Functions deployes med: `.\supabase-cli\supabase.exe functions deploy <navn> --project-ref mdevyscqhpaogvsblfyp`
-- **`01_docs/`** er kontrol-center (Obsidian vault) — læs `01_docs/CLAUDE_RULES.md` FØRST før ændringer
+- `supabase/functions/` er **ekskluderet** fra `tsconfig.json` — Next.js checker dem ikke
+- Edge Functions deployes med Windows-binary: `.\supabase-cli\supabase.exe functions deploy <navn> --project-ref mdevyscqhpaogvsblfyp`
+- Brand-tokens er kanoniske i [`app/globals.css`](app/globals.css) — kopier ikke, importér
+
+### Dokumentation (`01_docs/`)
+
+- **Læs [01_docs/CLAUDE_RULES.md](01_docs/CLAUDE_RULES.md) FØRST** før ændringer i `01_docs/`
 - **`01_docs/Noter.md`** må ALDRIG ændres (`claude_write_access: false`)
-- Strukturelle ændringer i `01_docs/` (sletninger, omdøbninger, nye mapper) kræver eksplicit "JA" i chat
-- Efter ændringer i `01_docs/`: append entry til `01_docs/CHANGELOG.md`
-- Brand-tokens: `--orange: #FF3700`, `--offblack: #1A1A1A`, `--gunmetal: #484848`, `--bg: #F4F4F4`
-- Font: DM Sans (Google Fonts)
+- Strukturelle ændringer (sletninger, omdøbninger, nye mapper) kræver eksplicit "JA" i chat
+- Efter ændringer: brug `/changelog` skill til at logge i `01_docs/CHANGELOG.md`
+- Schema-ændringer skal også dokumenteres i `01_docs/Documentation/Migrations.md`
 
 ---
 
-## Aktuel status (Maj 2026)
+## Aktuel status
 
-- ✅ Sprint 1: Fundament (Next.js + Supabase + DB)
-- ✅ Sprint 2: Motor (scraper + Gemini + pg_cron)
-- ✅ Sprint 3: Brugerlag (gem-funktion + /saved + /digest)
-- 🔧 Sprint 4: Deploy til Vercel (i gang)
-- ⏳ Gemini kvote: Venter på billing — digest-generering afventer
+Sprint 1-5 lukket. Detaljer + næste skridt: [01_docs/Plan/Roadmap.md](01_docs/Plan/Roadmap.md).
 
 ---
 
 ## Kendte workarounds
 
-- Gemini free tier løber tør hurtigt — billing skal tilføjes på aistudio.google.com
-- Supabase CLI på Windows: binary i `./supabase-cli/supabase.exe` (ikke npm)
-- `.next` mappe skal slettes ved EPERM build-fejl: `rmdir /s /q .next`
-- Vercel auto-deploy virker ikke altid — brug `vercel --prod` fra terminal
+- Gemini 2.5 Flash bruger interne thinking-tokens — sæt `maxOutputTokens` højt nok til både thinking + synligt output (se eksisterende API-ruter for tunede værdier)
+- Supabase CLI på Windows: brug `./supabase-cli/supabase.exe` (ikke npm)
+- `.next`-mappe kan låses ved EPERM build-fejl: `rmdir /s /q .next`
+- Vercel auto-deploy virker ikke altid — brug `vercel --prod` fra terminal hvis push ikke trigger build
