@@ -162,6 +162,11 @@ links_to:
 
 > Bugfixes, tweaks, små rettelser uden strukturpåvirkning.
 
+### 2026-05-08 — Dokumentér supabase-cli som lokal-hentet
+**Filer:** `README.md`, `01_docs/Komandoer.md`
+**Beskrivelse:** GitHub advarede ved første push til Spring Family IT-repoet om 93 MB binary i historikken. `.gitignore` har allerede `/supabase-cli/`, men ny samarbejdspartner ved ikke hvor de henter CLI'en. Tilføjet step 4 i README "Kom i gang lokalt" + note i Komandoer.md under Edge Function deploy. Spor B (rewrite history + force push) blev fravalgt — kosmetisk advarsel ikke værd at force-push for.
+**Commit:** _(pending)_
+
 ### 2026-05-07 — Unified rapport: token-tuning + bedre fejl
 **Filer:** `app/api/generate-unified/route.ts`
 **Beskrivelse:** Initial token-cap (4800 for 2 artikler) gav tom respons fra Gemini — samme issue som digest tidligere. Sænket til 3000+200*N capped 6000 (output-format er fast størrelse). Tilføjet verbose error med geminiData.error.message + candidates count.

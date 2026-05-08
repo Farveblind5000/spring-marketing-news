@@ -79,7 +79,13 @@ npm run dev
 
 Åbn [http://localhost:3000](http://localhost:3000).
 
-### 4. Login
+### 4. (Valgfrit) Hent Supabase CLI
+
+Kun nødvendigt hvis du skal deploye Edge Functions. Binaren er gitignored — hver udvikler henter den selv:
+- **Windows:** Download fra [github.com/supabase/cli/releases](https://github.com/supabase/cli/releases) → udpak `supabase.exe` til `./supabase-cli/`
+- **macOS / Linux:** `brew install supabase/tap/supabase` (eller `npm i -g supabase`)
+
+### 5. Login
 
 Brugere oprettes manuelt i Supabase Dashboard → Authentication. Email skal bekræftes med:
 

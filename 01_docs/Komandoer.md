@@ -3,7 +3,7 @@ title: "Komandoer — copy-paste reference"
 type: reference
 protection: normal
 claude_write_access: true
-updated: 2026-05-07
+updated: 2026-05-08
 ---
 
 # 🖥️ Komandoer
@@ -96,6 +96,10 @@ git push origin main
 ```
 
 Erstat `NAVN` med fx `scrape-articles` eller `generate-digest`.
+
+> **Bemærk:** `supabase-cli/` er gitignored (binary er ~94 MB). Hver udvikler skal hente CLI'en lokalt:
+> - **Windows:** Download fra [github.com/supabase/cli/releases](https://github.com/supabase/cli/releases) → udpak `supabase.exe` til `./supabase-cli/`
+> - **macOS / Linux:** `brew install supabase/tap/supabase` (eller npm: `npm i -g supabase`) — sti-eksemplet ovenfor skal så justeres til `supabase functions deploy ...`
 
 ---
 
