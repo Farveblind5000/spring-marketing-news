@@ -5,7 +5,7 @@ Et personligt AI & marketing intelligence-feed der scraper, opsummerer og kurate
 **Live:** [spring-marketing-news.vercel.app](https://spring-marketing-news.vercel.app)
 
 ---
-## Core formål/state
+## Core formål
 - End to end test med fokus på at skabe Claude design/Claude code learnings
 - Best practice overleverings learnings
 - Local mvp 
@@ -27,6 +27,15 @@ En multi-user web-app der:
 4. **Genererer struktureret briefing** når brugeren beder om det — kan redigeres manuelt og eksporteres til PDF eller email
 
 Målgruppe: Spring CC-medarbejdere (3 brugere live) der vil holde sig opdateret på AI + marketing uden at drukne i feeds.
+
+## Status
+
+- ✅ Sprint 1-4: MVP (scraper, feed, gem, digest, deploy)
+- ✅ Sprint 5: Curated digest, unified report, PDF/email export, kort opsummering
+- ⏳ Mobil-responsiv gennemgang
+- 🔮 Næste: se Roadmap
+
+Detaljeret historik: [01_docs/CHANGELOG.md](01_docs/CHANGELOG.md).
 
 ---
 
@@ -171,16 +180,6 @@ Den fulde kommando-reference findes i [01_docs/Komandoer.md](01_docs/Komandoer.m
 | [`Prompts/`](01_docs/Prompts/) | Levende prompt-templates (synces til Supabase) |
 | [`CLAUDE_RULES.md`](01_docs/CLAUDE_RULES.md) | Regler for AI-redigering af `01_docs/` |
 
----
-
-## Status
-
-- ✅ Sprint 1-4: MVP (scraper, feed, gem, digest, deploy)
-- ✅ Sprint 5: Curated digest, unified report, PDF/email export, kort opsummering
-- ⏳ Mobil-responsiv gennemgang
-- 🔮 Næste: se Roadmap
-
-Detaljeret historik: [01_docs/CHANGELOG.md](01_docs/CHANGELOG.md).
 
 ---
 
