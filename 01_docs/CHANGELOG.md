@@ -3,7 +3,7 @@ title: "Changelog"
 type: log
 protection: locked
 claude_write_access: true
-updated: 2026-05-08
+updated: 2026-05-11
 links_to:
   - "Plan/Roadmap"
   - "CLAUDE_RULES"
@@ -21,6 +21,12 @@ links_to:
 
 > Strukturændringer, nye features, schema, breaking changes.
 
+### 2026-05-11 — Fjern alle valgte knap til digest queue
+**Filer:** `app/components/ClearDigestQueueButton.tsx` (ny), `app/page.tsx`
+**Begrundelse:** Brugeren havde ingen måde at nulstille alle digest-valg på én gang — måtte fjerne dem én for én. Knappen viser live-count af valgte artikler og sletter alle på én gang.
+**Konsekvenser:** Ny komponent `ClearDigestQueueButton` henter count fra Supabase ved mount (fanger valg klikket efter page load). Bar vises mellem filter-tabs og artikellisten. DELETE-query på `user_digest_queue` for aktuel bruger.
+**Commit:** b30bdc6
+
 ### 2026-05-08 — Dok-konsolidering: CLAUDE.md, File-structure.md, DB-schema.md
 **Filer:** `CLAUDE.md` (omskrevet), `01_docs/Documentation/File-structure.md` (opdateret), `01_docs/Documentation/DB-schema.md` (opdateret)
 **Begrundelse:** Opfølgning på samme dags onboarding-dok-arbejde. Tre filer havde forældet info eller duplikerede materiale fra Tech_stack.canvas/Roadmap. Brugeren godkendte rettelse efter at have set diff-rapporten.
@@ -29,7 +35,7 @@ links_to:
 - `File-structure.md`: tilføjet alle 5 nye API-ruter (export-pdf/email, generate-unified, short-summary, update-unified) + alle 6 nye komponenter (ArticleCard, EditableUnifiedReport, ExportButton, GenerateUnifiedButton, SendToDigestButton, UnifiedReportPDF). Prompts-mappe nu med 3 filer. `/digest` beskrevet som "personligt digest" frem for "ugentlig". `types/` mappe tilføjet. `Komandoer.md` tilføjet i 01_docs-træ.
 - `DB-schema.md`: tilføjet `user_digest_queue`-tabel komplet med RLS-noter. `articles` udvidet med `short_summary` + `short_summary_generated_at`. `digests` udvidet med `unified_content` + `unified_generated_at`. `settings.key`-kolonne udvidet med 3 prompt-keys i stedet for kun `digest_prompt`. Vedligehold-sektion tilføjet "Ryd short_summary cache"-snippet.
 - `relevance_score` markeret som legacy/ikke-vist (matcher kode-virkelighed siden 2026-05-07 commit f9b6b66).
-**Commit:** _(pending — ikke pushet endnu)_
+**Commit:** c44588c
 
 ### 2026-05-08 — Onboarding-dokumentation: ny README + opdateret Tech_stack.canvas
 **Filer:** `README.md` (omskrevet), `01_docs/Plan/Tech_stack.canvas` (opdateret)
@@ -40,7 +46,7 @@ links_to:
 - README henviser eksplicit til `01_docs/` som kontrol-center for at undgå dobbelt-vedligehold.
 - README dokumenterer to-remotes setup (`origin` personlig + `spring` Spring Family IT).
 **Note:** Forældet info i `CLAUDE.md`, `01_docs/Documentation/File-structure.md`, og `01_docs/Documentation/DB-schema.md` blev identificeret i samme session men IKKE rettet — afventer eksplicit godkendelse.
-**Commit:** _(pending — ikke pushet endnu)_
+**Commit:** c44588c · 02c3446 (README-justering)
 
 ### 2026-05-07 — Sprint 5 #10: Saml til rapport (struktureret briefing)
 **Filer:** `app/api/generate-unified/route.ts` (ny), `app/components/GenerateUnifiedButton.tsx` (ny), `app/digest/page.tsx`, `01_docs/Prompts/Unified Output Prompt.md` (ny), `scripts/sync-prompt.js`, `01_docs/Documentation/Migrations.md`, Supabase `digests` (nye kolonner)
@@ -165,12 +171,22 @@ links_to:
 ### 2026-05-08 — Dokumentér supabase-cli som lokal-hentet
 **Filer:** `README.md`, `01_docs/Komandoer.md`
 **Beskrivelse:** GitHub advarede ved første push til Spring Family IT-repoet om 93 MB binary i historikken. `.gitignore` har allerede `/supabase-cli/`, men ny samarbejdspartner ved ikke hvor de henter CLI'en. Tilføjet step 4 i README "Kom i gang lokalt" + note i Komandoer.md under Edge Function deploy. Spor B (rewrite history + force push) blev fravalgt — kosmetisk advarsel ikke værd at force-push for.
-**Commit:** _(pending)_
+**Commit:** 7827bb8
+
+### 2026-05-07 — 01_docs/ oprydning: slet Feed Site Plan + ryd Roadmap
+**Filer:** `01_docs/Archive/Feed Site Plan.md` (slettet), `01_docs/Plan/Roadmap.md`, `01_docs/CHANGELOG.md`
+**Beskrivelse:** Feed Site Plan var et forældet snapshot erstattet af CHANGELOG + Roadmap. Roadmap: "Recent Updates"-sektion fjernet (duplikerede CHANGELOG), Sprint 5 markeret ✅, Fase 4 rækkefølge rettet, "Export PDF" fjernet fra IKKE-i-MVP. CHANGELOG: sti-reference rettet fra `docs/` → `01_docs/`.
+**Commit:** 40d96be
 
 ### 2026-05-07 — Unified rapport: token-tuning + bedre fejl
 **Filer:** `app/api/generate-unified/route.ts`
 **Beskrivelse:** Initial token-cap (4800 for 2 artikler) gav tom respons fra Gemini — samme issue som digest tidligere. Sænket til 3000+200*N capped 6000 (output-format er fast størrelse). Tilføjet verbose error med geminiData.error.message + candidates count.
 **Commit:** f87f4f2
+
+### 2026-05-07 — Flyt eksporter-knap til under rapport-kort
+**Filer:** `app/digest/page.tsx`
+**Beskrivelse:** UX: export-knappen hørte tematisk til den samlede rapport men lå i bunden af siden. Flyttet til direkte under unified-section, højrejusteret. Fjernet fra footer-knapgruppen.
+**Commit:** a4bb5c4
 
 ### 2026-05-07 — Export-fixes: artikel-kort i PDF + brand-rename + tal-bug
 **Filer:** `app/components/UnifiedReportPDF.tsx`, `app/api/export-pdf/route.tsx`, `app/api/export-email/route.tsx`
@@ -179,6 +195,11 @@ links_to:
 2. Tal i orange cirkler manglede i PDF — fix: erstattet `<Text style={circle+text}>` med `<View style={circle}><Text>{n}</Text></View>` (View+Text pattern)
 3. Rebranding "Spring CC News Intel" → "EMILS AI NEWS" overalt: PDF header, email FROM, email subject, email HTML body, filename (emils-ai-news-uge-X-YYYY.pdf)
 **Commit:** c71fe19
+
+### 2026-05-07 — Auto-resize textareas i redigerings-mode
+**Filer:** `app/components/EditableUnifiedReport.tsx`
+**Beskrivelse:** UX: de tre textareas (context, insights, trends) havde fast højde (rows=2/3/4) og krævede scrolling for at se fuld tekst. Ny `AutoTextarea`-hjælper bruger `useLayoutEffect` + ref til at sætte height = scrollHeight ved mount og ved value-ændring. Manuelt resize deaktiveret da auto-fit håndterer det. Min-heights bevaret for tomme felter.
+**Commit:** 54bd9bc
 
 ### 2026-05-07 — Auto-expand summary ved filter=summarized
 **Filer:** `app/components/ArticleCard.tsx`, `app/page.tsx`
@@ -194,6 +215,11 @@ links_to:
 **Filer:** `app/components/GenerateDigestButton.tsx`
 **Beskrivelse:** `setLoading(false)` lå kun i catch-blok — efter succesful generation forblev knappen i loading state. Flyttet til finally-blok.
 **Commit:** 5d4c89f
+
+### 2026-05-07 — Short summary: paragraf + bullets format
+**Filer:** `01_docs/Prompts/Short Summary Prompt.md`, `app/components/ArticleCard.tsx`
+**Beskrivelse:** Bruger-ønsket format: linje 1 = beskrivende paragraf (2-3 sætninger, ≤50 ord), linje 2-5 = bullets med konkrete insights (≤14 ord hver), sidst = "Relevant for: ...". Prompt opdateret med eksplicit struktur + eksempel. ArticleCard renderer første linje som `<p>`, resten som `<ul><li>`. Eksisterende cached summaries vil se anderledes ud end nye ved næste kald.
+**Commit:** a3a2bba
 
 ### 2026-05-07 — Gemini 2.5 Flash thinking-tokens workaround
 **Filer:** `app/api/short-summary/route.ts`, `app/api/generate-digest/route.ts`
