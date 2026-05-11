@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import ArticleCard from '@/app/components/ArticleCard'
+import ClearDigestQueueButton from '@/app/components/ClearDigestQueueButton'
 
 // Start på indeværende ISO-uge (mandag 00:00 lokal tid)
 function startOfCurrentWeek(): Date {
@@ -183,6 +184,11 @@ export default async function FeedPage({
             )
           })}
         </div>
+
+        {/* DIGEST QUEUE BAR */}
+        {user && (
+          <ClearDigestQueueButton initialCount={queuedIds.size} />
+        )}
 
         {/* ARTICLE LIST */}
         {!articles.length ? (
