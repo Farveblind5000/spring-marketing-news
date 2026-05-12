@@ -33,7 +33,7 @@ links_to:
 - Legacy `topic`-felt bevaret — bruges stadig i `generate-digest`-prompten som metadata.
 - TypeScript-types: nyt `Category` type + `CATEGORY_LABELS` map i `types/index.ts`.
 **Note:** Bruger skal køre migration-SQL i Supabase SQL Editor + deploye scraper Edge Function. UI virker straks efter SQL.
-**Commit:** pending
+**Commit:** 81c1a01
 
 ### 2026-05-12 — Auto-push workflow: CLAUDE.md authorization + Stop hook
 **Filer:** `CLAUDE.md`, `.claude/settings.json` (ny)
