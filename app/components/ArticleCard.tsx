@@ -4,12 +4,23 @@ import { useState } from 'react'
 import SaveButton from './SaveButton'
 import SendToDigestButton from './SendToDigestButton'
 
+type Category = 'ai_research' | 'ai_engineering' | 'ai_news' | 'marketing' | 'marketing_ai'
+
+const CATEGORY_LABELS: Record<Category, string> = {
+  ai_research: 'AI Forskning',
+  ai_engineering: 'AI Engineering',
+  ai_news: 'AI Nyheder',
+  marketing: 'Marketing',
+  marketing_ai: 'Marketing + AI',
+}
+
 interface ArticleCardProps {
   article: {
     id: string
     title: string
     url: string
     topic: string | null
+    category?: Category | null
     published_at: string | null
     summary: string | null
     relevance_score: number | null
@@ -69,7 +80,8 @@ export default function ArticleCard({
   }
 
   const sourceName = article.sources?.name ?? ''
-  const topic = article.topic as 'ai' | 'marketing' | 'both'
+  const category = article.category ?? null
+  const categoryLabel = category ? CATEGORY_LABELS[category] : null
   const allLines = shortSummary?.split('\n').filter(Boolean) ?? []
   const description = allLines[0] ?? ''
   const bullets = allLines.slice(1)
@@ -106,12 +118,14 @@ export default function ArticleCard({
           style={{ textDecoration: 'none', color: 'inherit' }}
         >
           <div className="flex items-center gap-2 mb-2" style={{ fontSize: 12, color: 'var(--gunmetal)' }}>
-            <span
-              className={`eyebrow px-2 py-[3px] rounded-[40px] border text-[11px] badge-${topic}`}
-              style={{ borderColor: 'currentColor' }}
-            >
-              {topic === 'ai' ? 'AI' : 'Marketing'}
-            </span>
+            {categoryLabel && (
+              <span
+                className={`eyebrow px-2 py-[3px] rounded-[40px] border text-[11px] badge-${category}`}
+                style={{ borderColor: 'currentColor' }}
+              >
+                {categoryLabel}
+              </span>
+            )}
             <span>{sourceName}</span>
             <span
               className="rounded-full opacity-50"

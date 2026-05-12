@@ -13,11 +13,14 @@ function startOfCurrentWeek(): Date {
   return monday
 }
 
+type Category = 'ai_research' | 'ai_engineering' | 'ai_news' | 'marketing' | 'marketing_ai'
+
 interface ArticleRow {
   id: string
   title: string
   url: string
   topic: 'ai' | 'marketing' | 'both' | null
+  category: Category | null
   published_at: string | null
   scraped_at: string | null
   summary: string | null
@@ -27,9 +30,31 @@ interface ArticleRow {
   sources: { name: string } | null
 }
 
-type Filter = 'alle' | 'ai' | 'marketing' | 'summarized'
+type Filter = 'alle' | Category | 'summarized'
 
-const VALID_FILTERS: Filter[] = ['alle', 'ai', 'marketing', 'summarized']
+const VALID_FILTERS: Filter[] = ['alle', 'ai_research', 'ai_engineering', 'ai_news', 'marketing', 'marketing_ai', 'summarized']
+
+const FILTER_TABS: { label: string; value: Filter }[] = [
+  { label: 'Alle', value: 'alle' },
+  { label: 'AI Forskning', value: 'ai_research' },
+  { label: 'AI Engineering', value: 'ai_engineering' },
+  { label: 'AI Nyheder', value: 'ai_news' },
+  { label: 'Marketing', value: 'marketing' },
+  { label: 'Marketing + AI', value: 'marketing_ai' },
+  { label: '⚡ Opsummerede', value: 'summarized' },
+]
+
+const CATEGORY_VALUES: Category[] = ['ai_research', 'ai_engineering', 'ai_news', 'marketing', 'marketing_ai']
+
+const EMPTY_LABELS: Record<Filter, string> = {
+  alle: 'Ingen artikler de seneste 30 dage.',
+  ai_research: 'Ingen AI Forskning-artikler de seneste 30 dage.',
+  ai_engineering: 'Ingen AI Engineering-artikler de seneste 30 dage.',
+  ai_news: 'Ingen AI Nyheder-artikler de seneste 30 dage.',
+  marketing: 'Ingen Marketing-artikler de seneste 30 dage.',
+  marketing_ai: 'Ingen Marketing + AI-artikler de seneste 30 dage.',
+  summarized: 'Ingen artikler er opsummeret endnu — klik ⚡ på en artikel for at lave en opsummering.',
+}
 
 export default async function FeedPage({
   searchParams,
@@ -52,13 +77,12 @@ export default async function FeedPage({
 
   let query = supabase
     .from('articles')
-    .select('id, title, url, topic, published_at, scraped_at, summary, short_summary, relevance_score, read_time_min, sources(name)')
+    .select('id, title, url, topic, category, published_at, scraped_at, summary, short_summary, relevance_score, read_time_min, sources(name)')
     .gte('scraped_at', thirtyDaysAgo.toISOString())
     .order('scraped_at', { ascending: false })
     .limit(100)
 
-  if (filter === 'ai') query = query.eq('topic', 'ai')
-  else if (filter === 'marketing') query = query.eq('topic', 'marketing')
+  if ((CATEGORY_VALUES as string[]).includes(filter)) query = query.eq('category', filter)
   else if (filter === 'summarized') query = query.not('short_summary', 'is', null)
 
   const { data: articlesRaw } = await query
@@ -159,12 +183,7 @@ export default async function FeedPage({
           className="flex items-center gap-2 mb-8 pb-5 flex-wrap"
           style={{ borderBottom: '1px solid rgba(72,72,72,0.18)' }}
         >
-          {[
-            { label: 'Alle', value: 'alle' as const },
-            { label: 'AI', value: 'ai' as const },
-            { label: 'Marketing', value: 'marketing' as const },
-            { label: '⚡ Opsummerede', value: 'summarized' as const },
-          ].map(({ label, value }) => {
+          {FILTER_TABS.map(({ label, value }) => {
             const isActive = filter === value
             const href = value === 'alle' ? '/' : `/?filter=${value}`
             return (
@@ -193,13 +212,7 @@ export default async function FeedPage({
         {/* ARTICLE LIST */}
         {!articles.length ? (
           <p style={{ color: 'var(--gunmetal)', fontSize: 16 }}>
-            {filter === 'summarized'
-              ? 'Ingen artikler er opsummeret endnu — klik ⚡ på en artikel for at lave en opsummering.'
-              : filter === 'ai'
-              ? 'Ingen AI-artikler de seneste 30 dage.'
-              : filter === 'marketing'
-              ? 'Ingen marketing-artikler de seneste 30 dage.'
-              : 'Ingen artikler de seneste 30 dage.'}
+            {EMPTY_LABELS[filter]}
           </p>
         ) : (
           <>

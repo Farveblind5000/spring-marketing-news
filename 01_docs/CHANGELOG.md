@@ -21,6 +21,20 @@ links_to:
 
 > Strukturændringer, nye features, schema, breaking changes.
 
+### 2026-05-12 — Sprint 7: Category System (5 kategorier erstatter 3-værdi topic-filter)
+**Filer:** `supabase/schema.sql`, `01_docs/Documentation/Migrations.md`, `01_docs/Documentation/DB-schema.md`, `types/index.ts`, `supabase/functions/scrape-articles/index.ts`, `app/page.tsx`, `app/saved/page.tsx`, `app/components/ArticleCard.tsx`, `app/globals.css`, Supabase live DB (manuel SQL)
+**Begrundelse:** 24 kilder gjorde 3-værdi topic-systemet meningsløst i UI — alt under "AI" var en blanding af BAIR research, Latent Space engineering, Ben's Bites daily news. Bruger ønskede finkornet filtrering så de fem akser kan adskilles.
+**Konsekvenser:**
+- Schema: ny `category` TEXT-kolonne på `sources` + `articles` med CHECK constraint på 5 værdier (`ai_research`/`ai_engineering`/`ai_news`/`marketing`/`marketing_ai`). Index på `articles.category`. Backfill via JOIN på `source_id`.
+- Alle 24 aktive kilder fik kategori tildelt via UPDATE-statements: 5/4/8/3/4 fordeling.
+- Scraper: SELECT inkluderer `category`, INSERT propagerer den fra source til article.
+- UI feed: nye 6 filter-knapper (Alle, AI Forskning, AI Engineering, AI Nyheder, Marketing, Marketing + AI) + bevaret "⚡ Opsummerede". Query filter skiftet fra `topic` til `category`.
+- ArticleCard badge: viser kategori-label på dansk frem for "AI"/"Marketing" tekst. Fem nye CSS badge-klasser (purple/teal/orange/teal-green/amber).
+- Legacy `topic`-felt bevaret — bruges stadig i `generate-digest`-prompten som metadata.
+- TypeScript-types: nyt `Category` type + `CATEGORY_LABELS` map i `types/index.ts`.
+**Note:** Bruger skal køre migration-SQL i Supabase SQL Editor + deploye scraper Edge Function. UI virker straks efter SQL.
+**Commit:** pending
+
 ### 2026-05-12 — Auto-push workflow: CLAUDE.md authorization + Stop hook
 **Filer:** `CLAUDE.md`, `.claude/settings.json` (ny)
 **Begrundelse:** Efter Sprint 6-arbejdet endte 3 commits ulokalt på main uden at blive pushet — Vercel deployede ikke fordi Claude ikke vidste at push var forhåndsgodkendt. Bruger ønskede systemisk sikring så det aldrig sker igen, ikke kun manual godkendelse hver gang.

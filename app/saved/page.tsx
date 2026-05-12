@@ -3,11 +3,14 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ArticleCard from '@/app/components/ArticleCard'
 
+type Category = 'ai_research' | 'ai_engineering' | 'ai_news' | 'marketing' | 'marketing_ai'
+
 interface ArticleRow {
   id: string
   title: string
   url: string
   topic: 'ai' | 'marketing' | 'both' | null
+  category: Category | null
   published_at: string | null
   summary: string | null
   short_summary: string | null
@@ -34,7 +37,7 @@ export default async function SavedPage() {
   const { data: articlesRaw } = articleIds.length
     ? await supabase
         .from('articles')
-        .select('id, title, url, topic, published_at, summary, short_summary, relevance_score, read_time_min, sources(name)')
+        .select('id, title, url, topic, category, published_at, summary, short_summary, relevance_score, read_time_min, sources(name)')
         .in('id', articleIds)
     : { data: [] }
 

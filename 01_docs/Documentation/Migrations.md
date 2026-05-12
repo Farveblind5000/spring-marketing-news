@@ -16,6 +16,64 @@ links_to:
 
 ---
 
+## 2026-05-12 — Sprint 7: Category System (`category`-kolonne + 5 kategorier)
+
+**Formål:** Med 24 aktive kilder er 3-værdi topic-systemet (`ai`/`marketing`/`both`) for groft. Ny `category`-kolonne på `sources` og `articles` med 5 værdier giver brugeren mulighed for at filtrere meningsfuldt mellem AI Forskning, AI Engineering, AI Nyheder, Marketing og Marketing + AI.
+
+```sql
+-- 1. Tilføj category til sources
+ALTER TABLE sources
+ADD COLUMN IF NOT EXISTS category TEXT
+CHECK (category IN ('ai_research', 'ai_engineering', 'ai_news', 'marketing', 'marketing_ai'));
+
+-- 2. Tildel kategori til alle 24 aktive kilder
+UPDATE sources SET category = 'ai_research'
+  WHERE name IN ('Import AI', 'The Batch', 'BAIR Blog', 'DeepMind Blog', 'MIT Technology Review AI');
+
+UPDATE sources SET category = 'ai_engineering'
+  WHERE name IN ('Latent Space', 'TLDR AI', 'Hugging Face Blog', 'LangChain Blog');
+
+UPDATE sources SET category = 'ai_news'
+  WHERE name IN ('Ben''s Bites', 'Every AI', 'There''s An AI For That', 'Superhuman AI',
+                 'The Rundown AI', 'Anthropic News', 'OpenAI News', 'The Verge AI');
+
+UPDATE sources SET category = 'marketing'
+  WHERE name IN ('Search Engine Land', 'Marketing Brew', 'Ahrefs Blog');
+
+UPDATE sources SET category = 'marketing_ai'
+  WHERE name IN ('a16z AI', 'Marketing AI Institute', 'Search Engine Journal AI', 'Stratechery');
+
+-- 3. Tilføj category til articles
+ALTER TABLE articles
+ADD COLUMN IF NOT EXISTS category TEXT
+CHECK (category IN ('ai_research', 'ai_engineering', 'ai_news', 'marketing', 'marketing_ai'));
+
+-- 4. Backfill articles.category fra source
+UPDATE articles a SET category = s.category
+FROM sources s
+WHERE a.source_id = s.id AND s.category IS NOT NULL;
+
+-- 5. Index for filter-performance
+CREATE INDEX IF NOT EXISTS articles_category_idx ON articles(category);
+```
+
+**Verificering:**
+```sql
+-- Fordeling på kilder (skal vise alle 24 aktive med kategori)
+SELECT category, COUNT(*) FROM sources WHERE active = true GROUP BY category ORDER BY category;
+-- Forventet: ai_research=5, ai_engineering=4, ai_news=8, marketing=3, marketing_ai=4
+
+-- Fordeling på artikler
+SELECT category, COUNT(*) FROM articles WHERE category IS NOT NULL GROUP BY category ORDER BY category;
+```
+
+**Efter SQL kørt:** Deploy ny scraper-version så fremtidige artikler får `category` ved scrape:
+```powershell
+.\supabase-cli\supabase.exe functions deploy scrape-articles --project-ref mdevyscqhpaogvsblfyp
+```
+
+---
+
 ## 2026-05-12 — Sprint 6: Feed Expansion (20 nye kilder)
 
 **Formål:** Udvid fra 4 til 24 aktive feed-kilder. Deaktiverer gammel Anthropic Blog (duplikat) og tilføjer 20 nye.

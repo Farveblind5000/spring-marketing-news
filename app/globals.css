@@ -107,9 +107,16 @@ a {
   color: var(--orange);
 }
 
-/* ── Topic badges ── */
+/* ── Topic badges (legacy, beholdt for bagudkompat) ── */
 .badge-ai        { color: var(--orange); }
 .badge-marketing { color: #5C8B7E; }
+
+/* ── Category badges (Sprint 7) ── */
+.badge-ai_research    { color: #7A4FCB; }  /* purple — research/akademisk */
+.badge-ai_engineering { color: #2C8FB0; }  /* teal — tooling/engineering */
+.badge-ai_news        { color: var(--orange); }  /* orange — daily AI news */
+/* .badge-marketing — bruger den eksisterende #5C8B7E grøn ovenfor */
+.badge-marketing_ai   { color: #C77E1F; }  /* amber — marketing+AI crossover */
 
 /* ── Digest highlight link ── */
 .digest-highlight-link:hover { color: var(--orange) !important; }

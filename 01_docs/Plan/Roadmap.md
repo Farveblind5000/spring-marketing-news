@@ -135,22 +135,32 @@ Målgruppe: én eller flere brugere der vil holde sig opdateret på AI + marketi
 2. ✅ Deaktiver gammel Anthropic Blog (`/rss.xml`) i live DB *(MINOR — leveret 2026-05-12)*
 3. ✅ Opdater `schema.sql` + `Migrations.md` *(MAJOR — leveret 2026-05-12)*
 
-### Sprint 7 — Category System 🗓️
-**Periode:** Maj 2026 (igangværende)
+### Sprint 7 — Category System ✅
+**Periode:** Maj 2026
 
 **Tema:** Med 24 kilder bliver det nuværende 3-værdi topic-system (`ai`/`marketing`/`both`) for groft. Brugeren skal kunne filtrere på meningsfulde grupperinger så research, engineering, daglige nyheder og marketing kan adskilles i feedet.
 
-**Arkitektoniske beslutninger (foreløbig):**
+**Arkitektoniske beslutninger:**
 - Ny `category`-kolonne på `sources` (kanonisk) + på `articles` (arvet ved scrape)
-- 5 kategorier: AI Forskning, AI Engineering, AI Nyheder, Marketing, Marketing + AI
-- Eksisterende `topic`-felt bevares for bagudkompatibilitet (måske fjernes senere)
+- 5 kategorier: `ai_research`, `ai_engineering`, `ai_news`, `marketing`, `marketing_ai`
+- Eksisterende `topic`-felt bevares for bagudkompatibilitet (bruges stadig i digest-prompt)
 
-**Items (planlagt):**
-1. DB-migration: ny `category`-kolonne på `sources` + `articles` *(MAJOR — planlagt)*
-2. SQL-update: tildel kategori til alle 24 kilder *(MAJOR — planlagt)*
-3. Scraper opdatering: artikler arver `category` fra source *(MAJOR — planlagt)*
-4. UI: Erstat 4 filter-knapper med 6 kategori-knapper + "Kun opsummerede" *(MAJOR — planlagt)*
-5. ArticleCard badge: vis kategori frem for topic *(MINOR — planlagt)*
+**Kategori-fordeling (24 kilder):**
+
+| Kategori | Antal | Kilder |
+|---|---|---|
+| AI Forskning | 5 | Import AI, The Batch, BAIR Blog, DeepMind Blog, MIT Tech Review AI |
+| AI Engineering | 4 | Latent Space, TLDR AI, Hugging Face, LangChain |
+| AI Nyheder | 8 | Ben's Bites, Every AI, There's An AI For That, Superhuman AI, The Rundown AI, Anthropic News, OpenAI News, The Verge AI |
+| Marketing | 3 | Search Engine Land, Marketing Brew, Ahrefs Blog |
+| Marketing + AI | 4 | a16z AI, Marketing AI Institute, SEJ AI, Stratechery |
+
+**Items:**
+1. ✅ DB-migration: ny `category`-kolonne på `sources` + `articles` *(MAJOR — leveret 2026-05-12)*
+2. ✅ SQL-update: tildel kategori til alle 24 kilder *(MAJOR — leveret 2026-05-12)*
+3. ✅ Scraper opdatering: artikler arver `category` fra source *(MAJOR — leveret 2026-05-12)*
+4. ✅ UI: Erstat 4 filter-knapper med 6 kategori-knapper + "Kun opsummerede" *(MAJOR — leveret 2026-05-12)*
+5. ✅ ArticleCard badge: vis kategori frem for topic *(MINOR — leveret 2026-05-12)*
 
 ---
 

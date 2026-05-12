@@ -11,6 +11,7 @@ interface Source {
   name: string
   feed_url: string
   topic: 'ai' | 'marketing' | 'both'
+  category: 'ai_research' | 'ai_engineering' | 'ai_news' | 'marketing' | 'marketing_ai' | null
 }
 
 const rssParser = new Parser({
@@ -28,7 +29,7 @@ Deno.serve(async () => {
 
   const { data: sources } = await supabase
     .from('sources')
-    .select('id, name, feed_url, topic')
+    .select('id, name, feed_url, topic, category')
     .eq('active', true)
     .not('feed_url', 'is', null)
 
@@ -75,6 +76,7 @@ Deno.serve(async () => {
             title,
             url,
             topic: source.topic,
+            category: source.category,
             published_at: publishedAt,
             full_content: content.slice(0, 5000),
             read_time_min: readTimeMin,

@@ -10,6 +10,7 @@ create table sources (
   url          text not null,
   feed_url     text,
   topic        text check (topic in ('ai', 'marketing', 'both')),
+  category     text check (category in ('ai_research', 'ai_engineering', 'ai_news', 'marketing', 'marketing_ai')),
   active       boolean default true,
   last_scraped timestamptz,
   created_at   timestamptz default now()
@@ -55,6 +56,7 @@ create table articles (
   title           text not null,
   url             text unique not null,
   topic           text check (topic in ('ai', 'marketing', 'both')),
+  category        text check (category in ('ai_research', 'ai_engineering', 'ai_news', 'marketing', 'marketing_ai')),
   published_at    timestamptz,
   scraped_at      timestamptz default now(),
   summary         text,           -- Gemini 3-bullet summary
@@ -64,6 +66,7 @@ create table articles (
 );
 
 create index articles_topic_idx         on articles(topic);
+create index articles_category_idx      on articles(category);
 create index articles_published_at_idx  on articles(published_at desc);
 create index articles_relevance_idx     on articles(relevance_score desc);
 

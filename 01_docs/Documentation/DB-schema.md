@@ -3,7 +3,7 @@ title: "DB Schema"
 type: documentation
 protection: normal
 claude_write_access: true
-updated: 2026-05-08
+updated: 2026-05-12
 links_to:
   - "Plan/Roadmap"
   - "Documentation/Migrations"
@@ -27,7 +27,8 @@ Aktive RSS-feeds der scrapes.
 | `id` | UUID PK | Auto |
 | `name` | TEXT | "TechCrunch AI" osv. |
 | `feed_url` | TEXT | RSS XML endpoint |
-| `topic` | TEXT | `ai` / `marketing` / `both` |
+| `topic` | TEXT | `ai` / `marketing` / `both` (legacy, bevaret) |
+| `category` | TEXT | `ai_research` / `ai_engineering` / `ai_news` / `marketing` / `marketing_ai` — driver feed-filter |
 | `active` | BOOL | `false` deaktiverer scraping |
 | `last_scraped` | TIMESTAMPTZ | Sidste succesfulde scrape |
 | `created_at` | TIMESTAMPTZ | Auto |
@@ -43,7 +44,8 @@ Scraped artikler — ét row per unik URL. `short_summary*` er global cache fra 
 | `source_id` | UUID FK → sources | Hvor kom den fra |
 | `title` | TEXT | RSS title |
 | `url` | TEXT UNIQUE | Dedup-nøgle |
-| `topic` | TEXT | Arvet fra source |
+| `topic` | TEXT | Arvet fra source (legacy, bevaret) |
+| `category` | TEXT | Arvet fra source — driver feed-filter (5 værdier, se sources-tabel) |
 | `summary` | TEXT | Gemini bullets (3 stk, dansk) — fra scraper |
 | `relevance_score` | NUMERIC | 1-10 fra Gemini (legacy — ikke vist i UI) |
 | `full_content` | TEXT | RSS content (max 5000 chars) |
