@@ -3,7 +3,7 @@ title: "DB Migrations"
 type: documentation
 protection: normal
 claude_write_access: true
-updated: 2026-05-05
+updated: 2026-05-12
 links_to:
   - "Documentation/DB-schema"
   - "../CHANGELOG"
@@ -13,6 +13,46 @@ links_to:
 
 > Append-only log over schema-ændringer. Hver migration har en SQL-blok der kan køres i Supabase SQL Editor.
 > **Newest first.**
+
+---
+
+## 2026-05-12 — Sprint 6: Feed Expansion (20 nye kilder)
+
+**Formål:** Udvid fra 4 til 24 aktive feed-kilder. Deaktiverer gammel Anthropic Blog (duplikat) og tilføjer 20 nye.
+
+```sql
+-- Deaktiver gammel Anthropic Blog (erstattes af Anthropic News)
+UPDATE sources SET active = false WHERE name = 'Anthropic Blog';
+
+-- Indsæt 20 nye sources
+INSERT INTO sources (name, url, feed_url, topic) VALUES
+  ('Import AI',               'https://importai.substack.com',                              'https://importai.substack.com/feed',                                                      'ai'),
+  ('The Batch',               'https://www.deeplearning.ai/the-batch',                      'https://www.deeplearning.ai/the-batch/feed/',                                             'ai'),
+  ('Latent Space',            'https://www.latent.space',                                   'https://www.latent.space/feed',                                                           'ai'),
+  ('TLDR AI',                 'https://tldr.tech/ai',                                       'https://tldr.tech/ai/rss',                                                                'ai'),
+  ('Hugging Face Blog',       'https://huggingface.co/blog',                                'https://huggingface.co/blog/feed.xml',                                                   'ai'),
+  ('LangChain Blog',          'https://blog.langchain.dev',                                 'https://blog.langchain.dev/rss/',                                                         'ai'),
+  ('BAIR Blog',               'https://bair.berkeley.edu/blog',                             'https://bair.berkeley.edu/blog/feed.xml',                                                'ai'),
+  ('MIT Technology Review AI','https://www.technologyreview.com/topic/artificial-intelligence','https://www.technologyreview.com/topic/artificial-intelligence/feed',                 'both'),
+  ('a16z AI',                 'https://a16z.com/tag/artificial-intelligence',               'https://a16z.com/tag/artificial-intelligence/feed/',                                     'both'),
+  ('Ahrefs Blog',             'https://ahrefs.com/blog',                                    'https://ahrefs.com/blog/feed/',                                                           'marketing'),
+  ('Marketing AI Institute',  'https://www.marketingaiinstitute.com/blog',                  'https://www.marketingaiinstitute.com/blog/rss.xml',                                      'both'),
+  ('Ben''s Bites',            'https://www.bensbites.com',                                  'https://www.bensbites.com/feed',                                                          'ai'),
+  ('Every AI',                'https://every.to',                                           'https://every.to/feed',                                                                   'ai'),
+  ('DeepMind Blog',           'https://deepmind.google/discover/blog',                      'https://deepmind.google/discover/blog/rss.xml',                                          'ai'),
+  ('Anthropic News',          'https://www.anthropic.com/news',                             'https://www.anthropic.com/news/rss.xml',                                                 'ai'),
+  ('OpenAI News',             'https://openai.com/news',                                    'https://openai.com/news/rss.xml',                                                         'ai'),
+  ('Search Engine Journal AI','https://www.searchenginejournal.com/category/artificial-intelligence','https://www.searchenginejournal.com/category/artificial-intelligence/feed/',  'both'),
+  ('There''s An AI For That', 'https://theresanaiforthat.com',                              'https://theresanaiforthat.com/rss.xml',                                                   'ai'),
+  ('Superhuman AI',           'https://www.superhuman.ai',                                  'https://www.superhuman.ai/feed',                                                          'ai'),
+  ('The Rundown AI',          'https://www.therundown.ai',                                  'https://www.therundown.ai/rss.xml',                                                       'ai');
+```
+
+**Verificering:**
+```sql
+SELECT name, topic, active FROM sources ORDER BY active DESC, name;
+-- Skal vise 24 rækker (Anthropic Blog = active false, alle andre = active true)
+```
 
 ---
 
