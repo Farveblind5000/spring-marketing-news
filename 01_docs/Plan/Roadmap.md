@@ -3,7 +3,7 @@ title: "Project Roadmap"
 type: plan
 protection: locked
 claude_write_access: true
-updated: 2026-05-04
+updated: 2026-05-12
 links_to:
   - "../CHANGELOG"
   - "../Documentation/DB-schema"
@@ -33,16 +33,17 @@ Målgruppe: én eller flere brugere der vil holde sig opdateret på AI + marketi
 ## 📐 Scope
 
 ### MVP (i mål)
-- ✅ Daglig RSS-scraping fra 4 kilder
+- ✅ Daglig RSS-scraping fra 24 kilder
 - ✅ Gemini summary + relevance score 1-10
 - ✅ Personlig save-funktion
 - ✅ Personligt digest genereret på request
 - ✅ Vercel deploy med multi-user auth
 - ✅ Obsidian → Supabase prompt-sync workflow
-- ⏳ Mobil-responsivt design
+
+### Udskudt (ikke relevant nu)
+- Mobil-responsivt design — udskudt 2026-05-12, ikke prioriteret før kerne-flow er stabilt
 
 ### Eksplicit IKKE i MVP
-- Del/share digest
 - Digest arkiv detalje
 - Personaliseret score per bruger
 - Artikel-detail side
@@ -70,7 +71,7 @@ Målgruppe: én eller flere brugere der vil holde sig opdateret på AI + marketi
 - /digest side (personligt digest)
 - Edge Function generate-digest (legacy, erstattet)
 
-### Sprint 4 — Polish & Deploy 🔧
+### Sprint 4 — Polish & Deploy ✅
 **Periode:** Maj 2026
 - ✅ GitHub repo + Vercel deploy
 - ✅ TypeScript build-fejl løst
@@ -80,7 +81,7 @@ Målgruppe: én eller flere brugere der vil holde sig opdateret på AI + marketi
 - ✅ Personligt digest via Next.js API (i stedet for Edge Function)
 - ✅ Obsidian → Supabase prompt-sync
 - ✅ Konsolidering af kontrol-center til `docs/`
-- ⏳ Mobil-responsiv gennemgang
+- 🅿️ Mobil-responsiv gennemgang — udskudt (se Udskudt-sektion)
 
 ### Sprint 5 — Curated Digest & Feed Cleanup ✅
 **Periode:** Maj 2026
@@ -114,9 +115,60 @@ Målgruppe: én eller flere brugere der vil holde sig opdateret på AI + marketi
 10. Digest: "Saml til rapport"-knap → struktureret briefing *(MAJOR — leveret)*
 11. Digest: Manuel redigering af rapport før export *(MAJOR — leveret)*
 
+### Sprint 6 — Feed Expansion ✅
+**Periode:** Maj 2026
+
+**Tema:** Udvid feed-kildelisten fra 4 til 24 med fokus på AI research, AI tooling, marketing AI og enterprise AI. Erstatter eksisterende Anthropic Blog med den mere specifikke Anthropic News endpoint.
+
+**Nye kilder (20 stk, grupperet):**
+
+| Gruppe | Kilder |
+|---|---|
+| AI research & frontier | Import AI, The Batch, BAIR Blog, DeepMind Blog, MIT Technology Review AI |
+| AI engineering & tooling | Latent Space, TLDR AI, Hugging Face Blog, LangChain Blog |
+| AI news & discovery | Ben's Bites, Every AI, There's An AI For That, Superhuman AI, The Rundown AI |
+| Officielle model-nyheder | Anthropic News (erstatter Anthropic Blog), OpenAI News |
+| Marketing + AI crossover | a16z AI, Marketing AI Institute, Ahrefs Blog, Search Engine Journal AI |
+
+**Items:**
+1. ✅ Indsæt 20 nye sources i `sources`-tabellen *(MAJOR — leveret 2026-05-12)*
+2. ✅ Deaktiver gammel Anthropic Blog (`/rss.xml`) i live DB *(MINOR — leveret 2026-05-12)*
+3. ✅ Opdater `schema.sql` + `Migrations.md` *(MAJOR — leveret 2026-05-12)*
+
+### Sprint 7 — Category System 🗓️
+**Periode:** Maj 2026 (igangværende)
+
+**Tema:** Med 24 kilder bliver det nuværende 3-værdi topic-system (`ai`/`marketing`/`both`) for groft. Brugeren skal kunne filtrere på meningsfulde grupperinger så research, engineering, daglige nyheder og marketing kan adskilles i feedet.
+
+**Arkitektoniske beslutninger (foreløbig):**
+- Ny `category`-kolonne på `sources` (kanonisk) + på `articles` (arvet ved scrape)
+- 5 kategorier: AI Forskning, AI Engineering, AI Nyheder, Marketing, Marketing + AI
+- Eksisterende `topic`-felt bevares for bagudkompatibilitet (måske fjernes senere)
+
+**Items (planlagt):**
+1. DB-migration: ny `category`-kolonne på `sources` + `articles` *(MAJOR — planlagt)*
+2. SQL-update: tildel kategori til alle 24 kilder *(MAJOR — planlagt)*
+3. Scraper opdatering: artikler arver `category` fra source *(MAJOR — planlagt)*
+4. UI: Erstat 4 filter-knapper med 6 kategori-knapper + "Kun opsummerede" *(MAJOR — planlagt)*
+5. ArticleCard badge: vis kategori frem for topic *(MINOR — planlagt)*
+
 ---
 
 ## 🧭 Beslutninger (architectural decisions)
+
+### 2026-05-12 — Roadmap-sync indbygget i changelog-flow
+`/changelog`-skillen havde et hul: MAJOR/MINOR-entries gik kun til CHANGELOG, ikke til Roadmap, så Sprint-markeringer og Beslutninger drev fra hinanden. Tilføjet STEP 4.5 (klassificering A/B/C/D + automatisk roadmap-action) + ny `/sync-roadmap`-skill som ad-hoc safety net.
+Se: [CHANGELOG MAJOR 2026-05-12]
+
+### 2026-05-12 — Feed expansion: 4 → 24 kilder
+Skalering af kildelisten med fokus på fem akser (research, engineering, nyheder, officielle releases, marketing+AI).
+Anthropic Blog deaktiveret til fordel for `news/rss.xml`-endpoint.
+Se: [CHANGELOG MAJOR 2026-05-12] + Sprint 6.
+
+### 2026-05-08 — Dok-konsolidering: kanoniske kilder
+`CLAUDE.md` reduceret til navigations-dokument. Tech stack, fil-struktur og DB-schema findes nu hver kun ét sted (henholdsvis `Tech_stack.canvas`, `File-structure.md`, `DB-schema.md`).
+README skrevet som onboarding-overblik der peger ind i `01_docs/`.
+Se: [CHANGELOG MAJOR 2026-05-08] (to entries).
 
 ### 2026-05-05 — Konsolidering: én git-historie
 Kontrol-center (Obsidian vault) flyttet ind i projektet som `docs/`.

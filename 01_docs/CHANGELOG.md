@@ -3,7 +3,7 @@ title: "Changelog"
 type: log
 protection: locked
 claude_write_access: true
-updated: 2026-05-11
+updated: 2026-05-12
 links_to:
   - "Plan/Roadmap"
   - "CLAUDE_RULES"
@@ -20,6 +20,39 @@ links_to:
 ## MAJOR
 
 > Strukturændringer, nye features, schema, breaking changes.
+
+### 2026-05-12 — Roadmap-sync workflow: STEP 4.5 + /sync-roadmap skill
+**Filer:** `.claude/skills/changelog.md`, `.claude/skills/sync-roadmap.md` (ny)
+**Begrundelse:** Roadmap.md driftede væk fra CHANGELOG fordi `/changelog`-skillen routede til ENTEN Roadmap (Kategori 1) ELLER CHANGELOG (Kategori 2/3) — aldrig begge. Resultat: 10+ MAJOR entries i perioden 2026-05-07 til 2026-05-11 uden tilsvarende Sprint-markeringer eller Beslutninger-opdatering på roadmap. Bruger ønskede systemisk fix, ikke kun engangs-oprydning.
+**Konsekvenser:**
+- `/changelog` har nu STEP 4.5 der ALTID klassificerer MAJOR/MINOR-entries i 4 typer (A: sprint-delivery, B: arch decision, C: out-of-plan feature, D: pure tweak) og udfører roadmap-action accordingly.
+- Ny `/sync-roadmap` skill som ad-hoc safety net — scanner CHANGELOG over valgt tidsvindue, klassificerer drift, præsenterer tabel-rapport, anvender i tre faser med brugerbekræftelse.
+- Roadmap.md frontmatter `updated:` bumpes automatisk ved enhver roadmap-edit.
+- Respekt for `protection: locked` — substantielle roadmap-ændringer kræver eksplicit JA, simple ✅-markeringer er low-risk batch.
+**Commit:** pending
+
+### 2026-05-12 — Roadmap oprydning: Sprint 6+7, Beslutninger backfill, MVP-scope opdateret
+**Filer:** `01_docs/Plan/Roadmap.md`
+**Begrundelse:** MVP-scope sagde "4 kilder" (Sprint 6 ændrede til 24), Sprint 6 manglede helt i main-fil (lavet tidligere i worktree), Sprint 7 var ikke logget som planlagt, Beslutninger-sektion sprang fra 2026-05-05 direkte til 2026-05-04 uden de mange MAJOR-changes 2026-05-07 til 2026-05-11, mobil-responsivt design hang som ⏳ siden 2026-05-04.
+**Konsekvenser:**
+- MVP-scope: "4 kilder" → "24 kilder", mobil-responsivt design flyttet til ny "Udskudt"-sektion
+- Sprint 4: status ⏳ → ✅, mobil-item omdøbt med 🅿️-marker der peger på Udskudt-sektion
+- Sprint 6 (Feed Expansion) tilføjet komplet med tabel, items 1-3 ✅ leveret 2026-05-12
+- Sprint 7 (Category System) tilføjet med foreløbige arkitektoniske beslutninger og 5 planlagte items
+- Beslutninger: nye entries for 2026-05-12 (feed expansion) og 2026-05-08 (dok-konsolidering)
+**Commit:** pending
+
+### 2026-05-12 — Sprint 6: Feed expansion fra 4 til 24 kilder
+**Filer:** `supabase/schema.sql`, `01_docs/Documentation/Migrations.md`, Supabase live DB (manuel SQL)
+**Begrundelse:** Med 4 kilder var dækningen for smal — manglede AI research (Import AI, BAIR, DeepMind), AI engineering (Latent Space, HuggingFace, LangChain), officielle model-nyheder (OpenAI News, Anthropic News-endpoint), og marketing+AI crossover (Marketing AI Institute, a16z AI). Brugeren leverede kurateret liste på 20 kilder med tematiske beskrivelser.
+**Konsekvenser:**
+- 20 nye sources indsat i `sources`-tabellen via INSERT (kørt manuelt i Supabase SQL Editor 2026-05-12)
+- Gammel Anthropic Blog (`anthropic.com/rss.xml`) deaktiveret (`active = false`) til fordel for `www.anthropic.com/news/rss.xml` endpoint
+- `schema.sql` opdateret med ny "Sprint 6"-blok efter eksisterende startkilder
+- `Migrations.md` har komplet copy-paste SQL inkl. verificerings-query
+- Manuel scraper-trigger 2026-05-12 hentede første batch af artikler fra alle 24 kilder
+**Note:** Næste skridt er Sprint 7 (Category System) der løser at de mange nye artikler skal kunne filtreres meningsfuldt.
+**Commit:** 586bb50 (worktree branch `claude/hopeful-tu-653a35`)
 
 ### 2026-05-11 — Fjern alle valgte knap til digest queue
 **Filer:** `app/components/ClearDigestQueueButton.tsx` (ny), `app/page.tsx`

@@ -89,6 +89,58 @@ Format:
 **Commit:** [git SHA hvis udført, ellers "pending"]
 ```
 
+## STEP 4.5 — Roadmap cross-reference (ALWAYS for Category 2 + 3)
+
+After logging to CHANGELOG, the Roadmap may also need updating. Classify the entry:
+
+### A) Sprint item delivery
+**Symptom:** Entry references a Sprint item (e.g., "Sprint 5 #7", "Sprint 6 #2") OR text matches an unticked item under a Sprint section.
+
+**Action:**
+1. Open `01_docs/Plan/Roadmap.md`
+2. Find the matching Sprint item
+3. Update its status inline:
+   - Before: `1. Item text *(MAJOR)*`
+   - After:  `1. ✅ Item text *(MAJOR — leveret YYYY-MM-DD)*`
+4. If ALL items under a Sprint are ✅ → update Sprint header status to ✅
+
+### B) Architectural decision
+**Symptom:** Entry establishes a new pattern, swaps a third-party service, changes schema philosophy, introduces a non-trivial abstraction, or changes how the system is structured. *Not* a feature delivery.
+
+**Action:**
+1. Open `01_docs/Plan/Roadmap.md`
+2. Add a new entry at the TOP of `## 🧭 Beslutninger (architectural decisions)`
+3. Format:
+   ```markdown
+   ### YYYY-MM-DD — [overskrift]
+   [1-3 sætninger om hvad/hvorfor]
+   Se: [CHANGELOG MAJOR YYYY-MM-DD]
+   ```
+
+### C) Out-of-plan feature
+**Symptom:** A new feature shipped without a corresponding Sprint item.
+
+**Action:**
+Ask the user:
+> "Det her er en ny feature der ikke står på roadmap. Skal det:
+> [1] Tilføjes som nyt item under en eksisterende sprint?
+> [2] Eget mini-sprint?
+> [3] Bare CHANGELOG, ikke roadmap-relevant?"
+
+Apply accordingly.
+
+### D) Pure bug fix / copy tweak / internal refactor
+**Symptom:** No architectural or scope impact.
+
+**Action:** Skip. CHANGELOG-entry alene er nok.
+
+### After ANY Roadmap update
+
+- Bump `updated:` in Roadmap.md frontmatter to today (YYYY-MM-DD)
+- Roadmap has `protection: locked` → ask user "JA" before saving if changes are substantial (a single item flip from ⬜ → ✅ counts as low-risk; new Beslutninger or Sprint-item creation needs JA)
+
+---
+
 ## STEP 5 — Execute (if user said yes)
 
 Make the changes. After git commit, return to the changelog entry and replace `pending` with the actual commit SHA.
