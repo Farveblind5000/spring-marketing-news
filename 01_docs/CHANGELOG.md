@@ -29,7 +29,7 @@ links_to:
 - `.claude/settings.json` (ny fil, committed) med Stop hook der ved session-slut tjekker om der er unpushed commits på main. Hvis ja, blokerer den med JSON-output der genengagerer Claude med påmindelse om standing authorization. Tjekker kun for THIS project (origin URL match) og kun main branch.
 - Aktuel status i CLAUDE.md opdateret: "Sprint 1-5 lukket" → "Sprint 1-6 lukket. Sprint 7 (Category System) igangværende".
 - Stop hook timeout: 10s. Bruger bash shell (Git Bash på Windows).
-**Commit:** pending
+**Commit:** 1b3a2d8
 
 ### 2026-05-12 — Roadmap-sync workflow: STEP 4.5 + /sync-roadmap skill
 **Filer:** `.claude/skills/changelog.md`, `.claude/skills/sync-roadmap.md` (ny)
