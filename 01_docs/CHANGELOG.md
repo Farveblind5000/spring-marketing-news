@@ -52,7 +52,7 @@ links_to:
 - `Migrations.md` har komplet copy-paste SQL inkl. verificerings-query
 - Manuel scraper-trigger 2026-05-12 hentede første batch af artikler fra alle 24 kilder
 **Note:** Næste skridt er Sprint 7 (Category System) der løser at de mange nye artikler skal kunne filtreres meningsfuldt.
-**Commit:** 586bb50 (worktree branch `claude/hopeful-tu-653a35`)
+**Commit:** 28bd803
 
 ### 2026-05-11 — Fjern alle valgte knap til digest queue
 **Filer:** `app/components/ClearDigestQueueButton.tsx` (ny), `app/page.tsx`
