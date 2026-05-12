@@ -29,7 +29,7 @@ links_to:
 - Ny `/sync-roadmap` skill som ad-hoc safety net — scanner CHANGELOG over valgt tidsvindue, klassificerer drift, præsenterer tabel-rapport, anvender i tre faser med brugerbekræftelse.
 - Roadmap.md frontmatter `updated:` bumpes automatisk ved enhver roadmap-edit.
 - Respekt for `protection: locked` — substantielle roadmap-ændringer kræver eksplicit JA, simple ✅-markeringer er low-risk batch.
-**Commit:** pending
+**Commit:** 7c2cfa6
 
 ### 2026-05-12 — Roadmap oprydning: Sprint 6+7, Beslutninger backfill, MVP-scope opdateret
 **Filer:** `01_docs/Plan/Roadmap.md`
@@ -40,7 +40,7 @@ links_to:
 - Sprint 6 (Feed Expansion) tilføjet komplet med tabel, items 1-3 ✅ leveret 2026-05-12
 - Sprint 7 (Category System) tilføjet med foreløbige arkitektoniske beslutninger og 5 planlagte items
 - Beslutninger: nye entries for 2026-05-12 (feed expansion) og 2026-05-08 (dok-konsolidering)
-**Commit:** pending
+**Commit:** 7c2cfa6
 
 ### 2026-05-12 — Sprint 6: Feed expansion fra 4 til 24 kilder
 **Filer:** `supabase/schema.sql`, `01_docs/Documentation/Migrations.md`, Supabase live DB (manuel SQL)
