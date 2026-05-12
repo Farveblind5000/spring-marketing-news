@@ -21,6 +21,16 @@ links_to:
 
 > Strukturændringer, nye features, schema, breaking changes.
 
+### 2026-05-12 — Auto-push workflow: CLAUDE.md authorization + Stop hook
+**Filer:** `CLAUDE.md`, `.claude/settings.json` (ny)
+**Begrundelse:** Efter Sprint 6-arbejdet endte 3 commits ulokalt på main uden at blive pushet — Vercel deployede ikke fordi Claude ikke vidste at push var forhåndsgodkendt. Bruger ønskede systemisk sikring så det aldrig sker igen, ikke kun manual godkendelse hver gang.
+**Konsekvenser:**
+- `CLAUDE.md` ny sektion "Git workflow — standing authorizations": eksplicit forhåndsgodkendelse af `git push origin main` efter /changelog-flow. Force-push, reset, andre branches end main, og spring-remote kræver stadig "JA".
+- `.claude/settings.json` (ny fil, committed) med Stop hook der ved session-slut tjekker om der er unpushed commits på main. Hvis ja, blokerer den med JSON-output der genengagerer Claude med påmindelse om standing authorization. Tjekker kun for THIS project (origin URL match) og kun main branch.
+- Aktuel status i CLAUDE.md opdateret: "Sprint 1-5 lukket" → "Sprint 1-6 lukket. Sprint 7 (Category System) igangværende".
+- Stop hook timeout: 10s. Bruger bash shell (Git Bash på Windows).
+**Commit:** pending
+
 ### 2026-05-12 — Roadmap-sync workflow: STEP 4.5 + /sync-roadmap skill
 **Filer:** `.claude/skills/changelog.md`, `.claude/skills/sync-roadmap.md` (ny)
 **Begrundelse:** Roadmap.md driftede væk fra CHANGELOG fordi `/changelog`-skillen routede til ENTEN Roadmap (Kategori 1) ELLER CHANGELOG (Kategori 2/3) — aldrig begge. Resultat: 10+ MAJOR entries i perioden 2026-05-07 til 2026-05-11 uden tilsvarende Sprint-markeringer eller Beslutninger-opdatering på roadmap. Bruger ønskede systemisk fix, ikke kun engangs-oprydning.

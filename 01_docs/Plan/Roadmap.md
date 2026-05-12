@@ -156,6 +156,10 @@ Målgruppe: én eller flere brugere der vil holde sig opdateret på AI + marketi
 
 ## 🧭 Beslutninger (architectural decisions)
 
+### 2026-05-12 — Auto-push standing authorization + Stop hook
+Push til `origin/main` efter /changelog-flow er forhåndsgodkendt i CLAUDE.md — ingen manuel "JA" hver gang. Stop hook i `.claude/settings.json` fanger forglemte pushes ved session-slut og genengagerer Claude. Force-push og andre risk-handlinger kræver stadig eksplicit bekræftelse.
+Se: [CHANGELOG MAJOR 2026-05-12]
+
 ### 2026-05-12 — Roadmap-sync indbygget i changelog-flow
 `/changelog`-skillen havde et hul: MAJOR/MINOR-entries gik kun til CHANGELOG, ikke til Roadmap, så Sprint-markeringer og Beslutninger drev fra hinanden. Tilføjet STEP 4.5 (klassificering A/B/C/D + automatisk roadmap-action) + ny `/sync-roadmap`-skill som ad-hoc safety net.
 Se: [CHANGELOG MAJOR 2026-05-12]

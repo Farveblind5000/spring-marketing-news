@@ -56,11 +56,27 @@ Det fulde overblik med dataflow ligger i [Tech_stack.canvas](01_docs/Plan/Tech_s
 - Efter ændringer: brug `/changelog` skill til at logge i `01_docs/CHANGELOG.md`
 - Schema-ændringer skal også dokumenteres i `01_docs/Documentation/Migrations.md`
 
+### Git workflow — standing authorizations
+
+Følgende handlinger er **forhåndsgodkendt** og kræver IKKE separat "JA" hver gang:
+
+- **`git push origin main`** efter et commit der følger `/changelog`-flowet (kode + CHANGELOG-entry). Vercel-deploy er den forventede konsekvens, ikke en separat risiko.
+- **`git push spring main`** når brugeren eksplicit har bedt om at synkronisere til Spring Family IT-remoten.
+
+Følgende kræver **stadig eksplicit "JA"**:
+- `git push --force` (uanset branch)
+- `git reset --hard` mod commits der allerede er pushet
+- `git push` af branches der ikke er main (worktree-branches, feature-branches)
+- Push til `spring`-remote uden eksplicit anmodning
+- Sletning/omdøbning af branches i remote
+
+**Praktisk konsekvens:** Efter `/changelog` har Claude commit'et + opdateret CHANGELOG, må Claude pushe direkte. Glemmer Claude det, fanger Stop-hooken det (se `.claude/settings.json`).
+
 ---
 
 ## Aktuel status
 
-Sprint 1-5 lukket. Detaljer + næste skridt: [01_docs/Plan/Roadmap.md](01_docs/Plan/Roadmap.md).
+Sprint 1-6 lukket. Sprint 7 (Category System) igangværende. Detaljer + næste skridt: [01_docs/Plan/Roadmap.md](01_docs/Plan/Roadmap.md).
 
 ---
 

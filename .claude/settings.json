@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "r=$(git config --get remote.origin.url 2>/dev/null); [[ \"$r\" != *spring-marketing-news* ]] && exit 0; b=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); [[ \"$b\" != \"main\" ]] && exit 0; n=$(git rev-list --count origin/main..HEAD 2>/dev/null); [[ -z \"$n\" || \"$n\" -eq 0 ]] && exit 0; printf '{\"decision\":\"block\",\"reason\":\"Der er %d unpushed commit(s) på main. Per CLAUDE.md standing authorization må du pushe direkte med: git push origin main. Hvis det er bevidst ikke at pushe (fx du venter med flere kommende commits), så stop med en eksplicit note om hvorfor.\"}' \"$n\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
